@@ -1,0 +1,46 @@
+# Ignore directories
+**/image/
+**/video/
+**/**/build/
+**/**/weights/
+
+# Ignore weight file extensions
+*.weights
+*.pt
+*.pb
+*.onnx
+*.engine
+*.mlmodel
+*.torchscript
+*.tflite
+*.h5
+*.wts
+*_saved_model/
+*_web_model/
+*_openvino_model/
+*_paddle_model/
+weights/*
+
+# Optionally, ignore specific file formats for images and videos if they are not contained in named directories
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.tif
+*.tiff
+*.heic
+*.JPG
+*.JPEG
+*.PNG
+*.BMP
+*.TIF
+*.TIFF
+*.HEIC
+*.mp4
+*.mov
+*.MOV
+*.avi
+*.data
+*.json
+*.cfg
+# Add any other extensions as needed
