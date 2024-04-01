@@ -70,3 +70,7 @@ The default OpenCV install dir is `/usr/local/lib/cmake/opencv4`, and FastDeploy
 - Encounter `error while loading shared libraries: libxxx: cannot open shared object file: No such file or directory`.
     
     Use `copy_so.sh` to copy libs into one directory, and then `export LD_LIBRARY_PATH=/path/to/libs` before run.
+
+- Encounter `filesystem is not found`
+
+    Find `compiled_fastdeploy_sdk/FastDeploy.cmake`, and turn `set(CMAKE_CXX_STANDARD 11)` to `set(CMAKE_CXX_STANDARD 17)`.

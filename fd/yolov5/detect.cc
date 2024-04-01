@@ -37,7 +37,7 @@ void InferFolder(const std::string& model_file, const std::string& source_folder
       std::string extension = entry.path().extension().string();
       std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
-      if (extension == ".jpg" || extension == ".png" || extension == ".jpeg") {
+      if (extension == ".jpg" || extension == ".png" || extension == ".jpeg" || extension == ".bmp") {
         InferImage(model, file_path, output_folder);
       } else if (extension == ".mp4" || extension == ".avi") {
         InferVideo(model, file_path, output_folder);

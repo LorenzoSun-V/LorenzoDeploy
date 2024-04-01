@@ -20,3 +20,6 @@ message(STATUS "PROJECT_SOURCE_DIR: " ${PROJECT_SOURCE_DIR})
 
 add_executable(detect ${PROJECT_SOURCE_DIR}/detect.cc)
 target_link_libraries(detect ${FASTDEPLOY_LIBS})
+
+add_executable(batch_detect ${PROJECT_SOURCE_DIR}/batch_detect.cc)
+target_link_libraries(batch_detect ${FASTDEPLOY_LIBS})

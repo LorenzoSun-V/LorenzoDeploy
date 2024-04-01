@@ -113,6 +113,12 @@ static ILayer* convBlock(INetworkDefinition *network, std::map<std::string, Weig
   auto ew = network->addElementWise(*bn1->getOutput(0), *sig->getOutput(0), ElementWiseOperation::kPROD);
   assert(ew);
   return ew;
+
+  // ReLU activation
+  // auto relu = network->addActivation(*bn1->getOutput(0), ActivationType::kRELU);
+  // assert(relu);
+  // return relu;
+
 }
 
 static ILayer* focus(INetworkDefinition *network, std::map<std::string, Weights>& weightMap, ITensor& input, int inch, int outch, int ksize, std::string lname) {

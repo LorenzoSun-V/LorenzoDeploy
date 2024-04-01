@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2023-12-27 10:00:00
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-02-21 13:44:13
+ * @LastEditTime: 2024-02-29 09:39:32
  * @Description: 
  */
 #pragma once
@@ -22,12 +22,12 @@ const static char* kInputTensorName = "data";
 const static char* kOutputTensorName = "prob";
 
 // Detection model and Segmentation model' number of classes
-constexpr static int kNumClass = 80;
+constexpr static int kNumClass = 2;
 
 // Classfication model's number of classes
 constexpr static int kClsNumClass = 1000;
 
-constexpr static int kBatchSize = 1;
+constexpr static int kBatchSize = 16;
 
 // Yolo's input width and height must by divisible by 32
 constexpr static int kInputH = 640;
