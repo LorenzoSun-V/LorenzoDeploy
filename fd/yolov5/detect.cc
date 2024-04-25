@@ -5,42 +5,45 @@
 #include <chrono>
 #include <opencv2/opencv.hpp>
 #include "fastdeploy/vision.h"
+#include "common.h"
 
 namespace fs = std::filesystem;
-// using namespace std::filesystem;
+
 
 void InferImage(fastdeploy::vision::detection::YOLOv5& model, const std::string& image_file, const std::string& output_folder);
 void InferVideo(fastdeploy::vision::detection::YOLOv5& model, const std::string& video_file, const std::string& output_folder);
 
-void InferFolder(const std::string& model_file, const std::string& source_folder, int run_option, const std::string& output_folder = ".", const int img_size = 640) {
+void InferFolder(const Config& cfg) {
   auto option = fastdeploy::RuntimeOption();
-  if (run_option == 1 || run_option == 2) {
+  if (cfg.run_option == 1 || cfg.run_option == 2) {
     option.UseGpu();
-    if (run_option == 2) {
+    if (cfg.run_option == 2) {
       option.UseTrtBackend();
       option.SetTrtInputShape("images", {1, 3, img_size, img_size});
     }
   }
-  auto model = fastdeploy::vision::detection::YOLOv5(model_file, "", option);
-  model.GetPreprocessor().SetSize({img_size, img_size});
+  auto model = fastdeploy::vision::detection::YOLOv5(cfg.model_path, "", option);
+  model.GetPreprocessor().SetSize({cfg.img_size, cfg.img_size});
+  model.GetPostprocessor().SetConfThreshold(cfg.conf);
+  model.GetPostprocessor().SetNMSThreshold(cfg.nms_iou);
   if (!model.Initialized()) {
     std::cerr << "Failed to initialize model." << std::endl;
     return;
   }
 
   // 确保输出文件夹存在
-  fs::create_directories(output_folder);
+  fs::create_directories(cfg.output_folder);
 
-  for (const auto& entry : fs::directory_iterator(source_folder)) {
+  for (const auto& entry : fs::directory_iterator(cfg.source_folder)) {
     if (entry.is_regular_file()) {
       std::string file_path = entry.path().string();
       std::string extension = entry.path().extension().string();
       std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
       if (extension == ".jpg" || extension == ".png" || extension == ".jpeg" || extension == ".bmp") {
-        InferImage(model, file_path, output_folder);
+        InferImage(model, file_path, cfg.output_folder, cfg.threshold);
       } else if (extension == ".mp4" || extension == ".avi") {
-        InferVideo(model, file_path, output_folder);
+        InferVideo(model, file_path, cfg.output_folder, cfg.threshold);
       }
     }
   }
@@ -58,6 +61,7 @@ void InferImage(fastdeploy::vision::detection::YOLOv5& model, const std::string&
     std::cerr << "Failed to predict image: " << image_file << std::endl;
     return;
   }
+  std::cout << "Image: " << image_file << std::endl;
   std::cout << res.Str() << std::endl;
   auto vis_image = fastdeploy::vision::VisDetection(image, res);
   fs::path output_path = fs::path(output_folder) / ("vis_" + fs::path(image_file).filename().string());
