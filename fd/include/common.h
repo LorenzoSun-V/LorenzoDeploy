@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-04-25 15:04:45
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-04-26 13:43:54
+ * @LastEditTime: 2024-04-26 16:16:16
  * @Description: 
  */
 /*
@@ -29,7 +29,19 @@ struct Config {
     float threshold;          /*!< threshold. */
 };
 
-// Config load_config(const std::string& config_file);
+inline void print_config(const Config& cfg) {
+  std::cout << "==================== Config ====================" << std::endl;
+  std::cout << "model_path: " << cfg.model_path << std::endl;
+  std::cout << "source_folder: " << cfg.source_folder << std::endl;
+  std::cout << "output_folder: " << cfg.output_folder << std::endl;
+  std::cout << "run_option: " << cfg.run_option << std::endl;
+  std::cout << "img_size: " << cfg.img_size << std::endl;
+  std::cout << "bs: " << cfg.bs << std::endl;
+  std::cout << "conf: " << cfg.conf << std::endl;
+  std::cout << "nms_iou: " << cfg.nms_iou << std::endl;
+  std::cout << "threshold: " << cfg.threshold << std::endl;
+  std::cout << "===============================================" << std::endl;
+}
 
 inline Config load_config(const std::string& config_file){
   YAML::Node config = YAML::LoadFile(config_file);

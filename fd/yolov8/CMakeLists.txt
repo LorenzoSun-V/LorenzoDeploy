@@ -23,5 +23,5 @@ target_link_libraries(infer_demo ${FASTDEPLOY_LIBS})
 add_executable(multi_infer_demo ${PROJECT_SOURCE_DIR}/multi_infer.cc)
 target_link_libraries(multi_infer_demo ${FASTDEPLOY_LIBS})
 
-add_executable(detect ${PROJECT_SOURCE_DIR}/detect.cc ${SRCS})
-target_link_libraries(detect ${FASTDEPLOY_LIBS} yaml-cpp)
+add_executable(main ${PROJECT_SOURCE_DIR}/main.cc ${SRCS})
+target_link_libraries(main ${FASTDEPLOY_LIBS} yaml-cpp)
