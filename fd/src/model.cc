@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-04-26 14:21:37
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-04-28 17:06:19
+ * @LastEditTime: 2024-04-29 09:29:50
  * @Description: 
  */
 #include <iostream>
@@ -216,11 +216,17 @@ void Model::ProcessBatchVideo(
         auto vis_frame = fastdeploy::vision::VisDetection(batch_frames[i], batch_results->at(i));
         video_writer.write(vis_frame);
         if (save_ori){
-            fs::path output_path_ori = fs::path(cfg.output_folder) / (fs::path(video_file).stem().string() + "_" + std::to_string(*num) + ".jpg");
-            fs::path output_path_vis = fs::path(cfg.output_folder) / (fs::path(video_file).stem().string() + "_" + std::to_string(*num) + "_vis.jpg");
-            cv::imwrite(output_path_ori.string(), batch_frames[i]);
-            cv::imwrite(output_path_vis.string(), vis_frame);
-            (*num)++;
+            // 只将满足阈值的原图保存
+            for (size_t j = 0; j < batch_results->at(i).boxes.size(); j++){
+                if (batch_results->at(i).scores[j] > cfg.threshold){
+                    fs::path output_path_ori = fs::path(cfg.output_folder) / (fs::path(video_file).stem().string() + "_" + std::to_string(*num) + ".jpg");
+                    fs::path output_path_vis = fs::path(cfg.output_folder) / (fs::path(video_file).stem().string() + "_" + std::to_string(*num) + "_vis.jpg");
+                    cv::imwrite(output_path_ori.string(), batch_frames[i]);
+                    cv::imwrite(output_path_vis.string(), vis_frame);
+                    (*num)++;
+                    break;
+                }
+            }
         }
     }
     batch_frames.clear();
@@ -289,6 +295,57 @@ void Model::InferVideo(const std::string& video_file){
     cap.release();
     video_writer.release();
 }
+
+/**
+ * Processes all files in a specified folder for object detection, infers images and videos, and saves the results to disk.
+ * 
+ * This function creates the output folder if it does not already exist.
+ * 
+ * It iterates over all files in the source folder using the filesystem library.
+ * For each file, it checks the file extension to determine if it is an image or video file.
+ * If the file is an image file, it calls the InferImage function to process the image.
+ * If the file is a video file, it calls the InferVideo function to process the video.
+ */
+void Model::InferFolder(){
+    fs::create_directories(cfg.output_folder);
+    for (const auto& entry : fs::directory_iterator(cfg.source_folder)) {
+        if (entry.is_regular_file()) {
+            auto file_path = entry.path().string();
+            auto extension = entry.path().extension().string();
+            std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
+            if (extension == ".jpg" || extension == ".png" || extension == ".jpeg" || extension == ".bmp")
+                InferImage(file_path);
+            else if (extension == ".mp4" || extension == ".avi")
+                InferVideo(file_path);
+        }
+    }
+}
+
+
+// YOLOv5Model的构造函数，调用基类Model的构造函数并初始化模型
+void YOLOv5Model::InitModel(const Config& cfg) {
+    auto option = configureRuntimeOptions();
+    model = std::make_shared<fastdeploy::vision::detection::YOLOv5>(cfg.model_path, "", option);
+    model->GetPreprocessor().SetSize({cfg.img_size, cfg.img_size});
+    model->GetPostprocessor().SetConfThreshold(cfg.conf);
+    model->GetPostprocessor().SetNMSThreshold(cfg.nms_iou);
+    if (!model->Initialized())
+        std::cerr << "Failed to initialize model." << std::endl;
+}
+
+bool YOLOv5Model::Predict(const cv::Mat& image, fastdeploy::vision::DetectionResult* res) {
+    if (!model->Predict(image, res))
+        return false;
+    return true;
+}
+
+bool YOLOv5Model::BatchPredict(const std::vector<cv::Mat>& batch_images, std::vector<fastdeploy::vision::DetectionResult>* batch_results) {
+    if (!model->BatchPredict(batch_images, batch_results))
+        return false;
+    return true;
+}
+
 
 // YOLOv8Model的构造函数，调用基类Model的构造函数并初始化模型
 void YOLOv8Model::InitModel(const Config& cfg) {

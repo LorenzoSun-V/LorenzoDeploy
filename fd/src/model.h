@@ -1,3 +1,10 @@
+/*
+ * @Author: BTZN0325 sunjiahui@boton-tech.com
+ * @Date: 2024-04-26 14:21:20
+ * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
+ * @LastEditTime: 2024-04-29 09:21:53
+ * @Description: 
+ */
 # pragma once
 
 #include <string>
@@ -23,9 +30,23 @@ public:
     void InferImage(const std::string& image_file);
     void InferImagesBatch(const std::vector<std::string>& batch_files);
     void InferVideo(const std::string& video_file);
-    // void InferFolder(const std::string& folder_path, const std::string& output_folder, ) = 0;
+    void InferFolder();
 
 };
+
+
+class YOLOv5Model : public Model{
+protected:
+    std::shared_ptr<fastdeploy::vision::detection::YOLOv5> model;
+
+public:
+    YOLOv5Model(const std::string& config_path) : Model(config_path) {InitModel(cfg);}
+
+    void InitModel(const Config& cfg) override;
+    bool Predict(const cv::Mat& image, fastdeploy::vision::DetectionResult* res) override;
+    bool BatchPredict(const std::vector<cv::Mat>& batch_images, std::vector<fastdeploy::vision::DetectionResult>* batch_results) override;
+};
+
 
 class YOLOv8Model : public Model{
 protected:
