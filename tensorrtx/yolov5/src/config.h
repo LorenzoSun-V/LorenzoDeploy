@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2023-12-27 10:00:00
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-02-29 09:39:32
+ * @LastEditTime: 2024-04-30 14:29:50
  * @Description: 
  */
 #pragma once
@@ -22,7 +22,7 @@ const static char* kInputTensorName = "data";
 const static char* kOutputTensorName = "prob";
 
 // Detection model and Segmentation model' number of classes
-constexpr static int kNumClass = 2;
+constexpr static int kNumClass = 4;
 
 // Classfication model's number of classes
 constexpr static int kClsNumClass = 1000;

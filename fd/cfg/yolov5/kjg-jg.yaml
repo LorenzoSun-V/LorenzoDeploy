@@ -1,0 +1,9 @@
+model_path: /lorenzo/releases/yolov5s-v7.0_b128_20240508_cls2_hw_v0.1.4.onnx
+source_folder: /data/bt/hw_multi/raw/1floor/20240508_2/images  #/data/bt/hw_multi/raw/1floor/20240508/images
+output_folder: ./yolov5s/hw/20240508_2_yolov5s_b128
+run_option: 0
+img_size: 320
+bs: 1              # batch size
+conf: 0.25
+nms_iou: 0.45
+threshold: 1.0     # 如果图片推理结果中有大于threshold的目标，则保存原图

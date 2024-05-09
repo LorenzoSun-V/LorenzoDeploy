@@ -1,0 +1,9 @@
+model_path: /lorenzo/bt_repo/ultralytics/runs/hw/yolov8m_b64_20240509_cls2_hw_v0.1.4/weights/best.onnx
+source_folder: /data/bt/hw_multi/raw/1floor/20240508/images
+output_folder: ./yolov8m/hw/1floor/20240508_yolov8m_b64
+run_option: 0
+img_size: 640
+bs: 1              # batch size
+conf: 0.25
+nms_iou: 0.45
+threshold: 1.0     # 如果图片推理结果中有大于threshold的目标，则保存原图

@@ -12,14 +12,20 @@ include_directories(${FASTDEPLOY_INCS})
 
 message(STATUS "PROJECT_SOURCE_DIR: " ${PROJECT_SOURCE_DIR})
 
-# add_executable(infer_demo ${PROJECT_SOURCE_DIR}/infer.cc)
-# target_link_libraries(infer_demo ${FASTDEPLOY_LIBS})
+# include
+include_directories(${PROJECT_SOURCE_DIR}/../include/)
+# src
+include_directories(${PROJECT_SOURCE_DIR}/../src/)
+file(GLOB_RECURSE SRCS ${PROJECT_SOURCE_DIR}/../src/*)
 
-# add_executable(multi_infer_demo ${PROJECT_SOURCE_DIR}/multi_infer.cc)
-# target_link_libraries(multi_infer_demo ${FASTDEPLOY_LIBS})
+SET(CMAKE_CXX_FLAGS "-w -W -Wall -Wno-sign-compare -std=c++17 -O3")
 
-add_executable(detect ${PROJECT_SOURCE_DIR}/detect.cc)
-target_link_libraries(detect ${FASTDEPLOY_LIBS} yaml-cpp)
 
-add_executable(batch_detect ${PROJECT_SOURCE_DIR}/batch_detect.cc)
-target_link_libraries(batch_detect ${FASTDEPLOY_LIBS})
+# add_executable(detect ${PROJECT_SOURCE_DIR}/detect.cc)
+# target_link_libraries(detect ${FASTDEPLOY_LIBS} yaml-cpp)
+
+# add_executable(batch_detect ${PROJECT_SOURCE_DIR}/batch_detect.cc)
+# target_link_libraries(batch_detect ${FASTDEPLOY_LIBS})
+
+add_executable(main ${PROJECT_SOURCE_DIR}/main.cc ${SRCS})
+target_link_libraries(main ${FASTDEPLOY_LIBS} yaml-cpp)

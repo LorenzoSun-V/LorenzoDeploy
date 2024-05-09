@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-04-26 14:21:37
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-04-29 09:29:50
+ * @LastEditTime: 2024-05-09 08:15:24
  * @Description: 
  */
 #include <iostream>
@@ -15,6 +15,93 @@
 #include "model.h"
 
 namespace fs = std::filesystem;
+
+cv::Mat VisDetectionCustom(const cv::Mat& im, const fastdeploy::vision::DetectionResult& result,
+                     float score_threshold, int line_size=2, float font_size=0.5) {
+  if (result.boxes.empty() && result.rotated_boxes.empty()) {
+    return im;
+  }
+
+  int max_label_id =
+      *std::max_element(result.label_ids.begin(), result.label_ids.end());
+  std::vector<int> color_map = fastdeploy::vision::GenerateColorMap(max_label_id);
+
+  int h = im.rows;
+  int w = im.cols;
+  auto vis_im = im.clone();
+  for (size_t i = 0; i < result.rotated_boxes.size(); ++i) {
+    if (result.scores[i] < score_threshold) {
+      continue;
+    }
+
+    int c0 = color_map[3 * result.label_ids[i] + 0];
+    int c1 = color_map[3 * result.label_ids[i] + 1];
+    int c2 = color_map[3 * result.label_ids[i] + 2];
+    cv::Scalar rect_color = cv::Scalar(c0, c1, c2);
+    std::string id = std::to_string(result.label_ids[i]);
+    std::string score = std::to_string(result.scores[i]);
+    if (score.size() > 4) {
+      score = score.substr(0, 4);
+    }
+    std::string text = id + ", " + score;
+    int font = cv::FONT_HERSHEY_SIMPLEX;
+    cv::Size text_size = cv::getTextSize(text, font, font_size, 1, nullptr);
+
+    for (int j = 0; j < 4; j++) {
+      auto start = cv::Point(
+          static_cast<int>(round(result.rotated_boxes[i][2 * j])),
+          static_cast<int>(round(result.rotated_boxes[i][2 * j + 1])));
+
+      cv::Point end;
+      if (j != 3) {
+        end = cv::Point(
+            static_cast<int>(round(result.rotated_boxes[i][2 * (j + 1)])),
+            static_cast<int>(round(result.rotated_boxes[i][2 * (j + 1) + 1])));
+      } else {
+        end = cv::Point(static_cast<int>(round(result.rotated_boxes[i][0])),
+                        static_cast<int>(round(result.rotated_boxes[i][1])));
+        cv::putText(vis_im, text, end, font, font_size,
+                    cv::Scalar(255, 255, 255), 1);
+      }
+      cv::line(vis_im, start, end, cv::Scalar(255, 255, 255), 3, cv::LINE_AA,
+               0);
+    }
+  }
+
+  for (size_t i = 0; i < result.boxes.size(); ++i) {
+    if (result.scores[i] < score_threshold) {
+      continue;
+    }
+    int x1 = static_cast<int>(round(result.boxes[i][0]));
+    int y1 = static_cast<int>(round(result.boxes[i][1]));
+    int x2 = static_cast<int>(round(result.boxes[i][2]));
+    int y2 = static_cast<int>(round(result.boxes[i][3]));
+    int box_h = y2 - y1;
+    int box_w = x2 - x1;
+    int c0 = color_map[3 * result.label_ids[i] + 0];
+    int c1 = color_map[3 * result.label_ids[i] + 1];
+    int c2 = color_map[3 * result.label_ids[i] + 2];
+    cv::Scalar rect_color = cv::Scalar(c0, c1, c2);
+    std::string id = std::to_string(result.label_ids[i]);
+    std::string score = std::to_string(result.scores[i]);
+    if (score.size() > 4) {
+      score = score.substr(0, 4);
+    }
+    std::string text = id + ", " + score;
+    int font = cv::FONT_HERSHEY_SIMPLEX;
+    cv::Size text_size = cv::getTextSize(text, font, font_size, 1, nullptr);
+    cv::Point origin;
+    origin.x = x1;
+    origin.y = y1+40;
+    cv::Rect rect(x1, y1, box_w, box_h);
+    cv::rectangle(vis_im, rect, rect_color, line_size);
+    cv::putText(vis_im, text, origin, font, font_size,
+                cv::Scalar(255, 255, 255), 1);
+
+  }
+//   std::cout << "custom vis" << std::endl;
+  return vis_im;
+}
 
 // 基类Model的构造函数，加载配置文件并打印配置信息
 Model::Model(const std::string& config_path){
@@ -29,6 +116,10 @@ Model::Model(const std::string& config_path){
 // 基类Model的configureRuntimeOptions函数，根据配置文件设置运行时选项
 fastdeploy::RuntimeOption Model::configureRuntimeOptions() const {
     auto option = fastdeploy::RuntimeOption();
+    if (cfg.run_option == 0){
+        option.UseOrtBackend();  
+        std::cout << "Using OpenVINO backend." << std::endl;
+    }
     if (cfg.run_option == 1 || cfg.run_option == 2) {
         option.UseGpu();
         if (cfg.run_option == 2) {
@@ -69,7 +160,7 @@ void Model::InferImage(const std::string& image_file){
     std::cout << "Image: " << image_file << std::endl;
     std::cout << res.Str() << std::endl;
     // 保存带有推理结果的图
-    auto vis_image = fastdeploy::vision::VisDetection(image, res);
+    auto vis_image = VisDetectionCustom(image, res, cfg.conf);
     fs::path output_path = fs::path(cfg.output_folder) / ("vis_" + fs::path(image_file).filename().string());
     cv::imwrite(output_path.string(), vis_image);
 
@@ -128,7 +219,7 @@ void Model::ProcessBatchImage(std::vector<cv::Mat>& batch_images, std::vector<st
     for (size_t i = 0; i < batch_images.size(); i++) {
         // 保存带有推理结果的图
         std::cout << batch_results->at(i).Str() << std::endl;
-        auto vis_image = fastdeploy::vision::VisDetection(batch_images[i], batch_results->at(i));
+        auto vis_image = VisDetectionCustom(batch_images[i], batch_results->at(i), cfg.conf);
         fs::path output_path = fs::path(cfg.output_folder) / ("vis_" + batch_names[i]);
         cv::imwrite(output_path.string(), vis_image);
 
@@ -213,7 +304,7 @@ void Model::ProcessBatchVideo(
         return;
     }
     for (size_t i = 0; i < batch_frames.size(); i++) {
-        auto vis_frame = fastdeploy::vision::VisDetection(batch_frames[i], batch_results->at(i));
+        auto vis_frame = VisDetectionCustom(batch_frames[i], batch_results->at(i), cfg.conf);
         video_writer.write(vis_frame);
         if (save_ori){
             // 只将满足阈值的原图保存

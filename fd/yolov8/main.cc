@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-02-05 14:45:21
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-04-29 09:29:09
+ * @LastEditTime: 2024-05-05 09:47:24
  * @Description: 
  */
 #include <iostream>
@@ -24,5 +24,13 @@ int main(int argc, char* argv[]) {
   Config cfg = load_config(yaml_path);
   YOLOv8Model model(yaml_path);
   model.InferFolder();
+  // std::vector<std::string> batch_files = {
+  //   "/lorenzo/deploy/LorenzoDeploy/fd/image/123/lQDPJwDerLc_-7HNASDNAYCwGt89uTCKll8GHPkepI_mAQ_384_288.jpg",
+  //   "/lorenzo/deploy/LorenzoDeploy/fd/image/123/lQDPJx1BiY8BW7HNAeDNAoCwJOSsNR8rO9kGHPkepI_mAg_640_480.jpg",
+  //   "/lorenzo/deploy/LorenzoDeploy/fd/image/123/lQDPJx1BiY8BW7HNAeDNAoCwJOSsNR8rO9kGHPkepI_mAg_940_480_2.jpg",
+  //   "/lorenzo/deploy/LorenzoDeploy/fd/image/123/lQDPKGSikJBfjLHNASDNAYCwVtgNAqjAGwoGHPkepI_mAA_384_288.jpg",
+  //   "/lorenzo/deploy/LorenzoDeploy/fd/image/123/lQDPKdbn6-Ixi7HNAoDNAoCwghvz9ZcIAp0GHPkepI_mAw_640_640.jpg",
+  // };
+  // model.InferImagesBatch(batch_files);
   return 0;
 }

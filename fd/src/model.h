@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-04-26 14:21:20
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-04-29 09:21:53
+ * @LastEditTime: 2024-05-06 15:11:12
  * @Description: 
  */
 # pragma once
@@ -59,3 +59,6 @@ public:
     bool Predict(const cv::Mat& image, fastdeploy::vision::DetectionResult* res) override;
     bool BatchPredict(const std::vector<cv::Mat>& batch_images, std::vector<fastdeploy::vision::DetectionResult>* batch_results) override;
 };
+
+cv::Mat VisDetectionCustom(const cv::Mat& im, const fastdeploy::vision::DetectionResult& result,
+                     float score_threshold, int line_size, float font_size);
