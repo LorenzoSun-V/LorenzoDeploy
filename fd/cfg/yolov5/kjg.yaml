@@ -1,0 +1,9 @@
+model_path: /lorenzo/deploy/LorenzoDeploy/fd/yolov5/weights/nlt_sl_0514.onnx
+source_folder: /data/bt/kjg_multi/raw_zips/nanlutian/20240513 # /data/bt/kjg_multi/raw_zips/nanlutian/20240424  
+output_folder: ./yolov5m/kjg/nanlutian/20240513_nlt_sl_0514
+run_option: 1
+img_size: 640
+bs: 1              # batch size
+conf: 0.25
+nms_iou: 0.45
+threshold: 1.0     # 如果图片推理结果中有大于threshold的目标，则保存原图

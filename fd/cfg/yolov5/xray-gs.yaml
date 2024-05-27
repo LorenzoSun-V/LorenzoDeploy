@@ -1,0 +1,9 @@
+model_path: /lorenzo/bt_repo/yolov5/yolov5-v7.0/runs/xray-gs/yolov5s-v7.0_20240517_cls2_xray-gs_v0.1.6/weights/best.onnx
+source_folder: /data/bt/xray_gangsi/LabeledData/20240301_concat/images # /data/bt/kjg_multi/raw_zips/nanlutian/20240424  
+output_folder: ./yolov5s/xray-gs/bilu/20240301_yolov5s-v7.0_20240517_cls2_xray-gs_v0.1.6
+run_option: 1
+img_size: 640
+bs: 1              # batch size
+conf: 0.25
+nms_iou: 0.45
+threshold: 1     # 如果图片推理结果中有大于threshold的目标，则保存原图

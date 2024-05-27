@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-04-26 14:21:37
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-05-09 08:15:24
+ * @LastEditTime: 2024-05-24 13:56:02
  * @Description: 
  */
 #include <iostream>
@@ -166,7 +166,7 @@ void Model::InferImage(const std::string& image_file){
 
     // 保存满足阈值的原图
     if (save_ori){
-        fs::path output_path_ori = fs::path(cfg.output_folder) / ("ori_" + fs::path(image_file).filename().string());
+        fs::path output_path_ori = fs::path(cfg.output_folder) / "threshold_filter" / ("ori_" + fs::path(image_file).filename().string());
         SaveOriginalImage(image, output_path_ori, res);
     }
 }
@@ -225,7 +225,7 @@ void Model::ProcessBatchImage(std::vector<cv::Mat>& batch_images, std::vector<st
 
         // 保存满足阈值的原图
         if (save_ori){
-            fs::path output_path_ori = fs::path(cfg.output_folder) / ("ori_" + fs::path(batch_names[i]).filename().string());
+            fs::path output_path_ori = fs::path(cfg.output_folder) / "threshold_filter" / ("ori_" + fs::path(batch_names[i]).filename().string());
             SaveOriginalImage(batch_images[i], output_path_ori.string(), batch_results->at(i));
         }
     }
@@ -310,8 +310,8 @@ void Model::ProcessBatchVideo(
             // 只将满足阈值的原图保存
             for (size_t j = 0; j < batch_results->at(i).boxes.size(); j++){
                 if (batch_results->at(i).scores[j] > cfg.threshold){
-                    fs::path output_path_ori = fs::path(cfg.output_folder) / (fs::path(video_file).stem().string() + "_" + std::to_string(*num) + ".jpg");
-                    fs::path output_path_vis = fs::path(cfg.output_folder) / (fs::path(video_file).stem().string() + "_" + std::to_string(*num) + "_vis.jpg");
+                    fs::path output_path_ori = fs::path(cfg.output_folder) / "threshold_filter" / (fs::path(video_file).stem().string() + "_" + std::to_string(*num) + ".jpg");
+                    fs::path output_path_vis = fs::path(cfg.output_folder) / "threshold_filter" / (fs::path(video_file).stem().string() + "_" + std::to_string(*num) + "_vis.jpg");
                     cv::imwrite(output_path_ori.string(), batch_frames[i]);
                     cv::imwrite(output_path_vis.string(), vis_frame);
                     (*num)++;
@@ -373,7 +373,6 @@ void Model::InferVideo(const std::string& video_file){
     while (true) {
         cap >> frame;
         if (frame.empty()) {
-            ProcessBatchVideo(batch_frames, &batch_results, video_file, video_writer, &num);
             break;
         }
         // 这里一定是深拷贝，因为frame会被修改
@@ -381,6 +380,11 @@ void Model::InferVideo(const std::string& video_file){
         if (batch_frames.size() == cfg.bs) {
             ProcessBatchVideo(batch_frames, &batch_results, video_file, video_writer, &num);
         }
+    }
+    
+    // Process any remaining frames in the batch
+    if (!batch_frames.empty()) {
+        ProcessBatchVideo(batch_frames, &batch_results, video_file, video_writer, &num);
     }
 
     cap.release();
@@ -399,6 +403,10 @@ void Model::InferVideo(const std::string& video_file){
  */
 void Model::InferFolder(){
     fs::create_directories(cfg.output_folder);
+    if (cfg.threshold < 1 && cfg.threshold > 0){
+        fs::path threshold_filter = fs::path(cfg.output_folder) / "threshold_filter";
+        fs::create_directories(threshold_filter);
+    }
     for (const auto& entry : fs::directory_iterator(cfg.source_folder)) {
         if (entry.is_regular_file()) {
             auto file_path = entry.path().string();
