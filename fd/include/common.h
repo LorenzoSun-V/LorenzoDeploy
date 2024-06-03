@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-04-25 15:04:45
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-04-26 16:16:16
+ * @LastEditTime: 2024-05-31 11:39:59
  * @Description: 
  */
 /*
@@ -27,6 +27,7 @@ struct Config {
     float conf;               /*!< confidence threshold. */
     float nms_iou;            /*!< nms iou threshold. */
     float threshold;          /*!< threshold. */
+    std::vector<int> classes; /*!< classes. */
 };
 
 inline void print_config(const Config& cfg) {
@@ -40,6 +41,11 @@ inline void print_config(const Config& cfg) {
   std::cout << "conf: " << cfg.conf << std::endl;
   std::cout << "nms_iou: " << cfg.nms_iou << std::endl;
   std::cout << "threshold: " << cfg.threshold << std::endl;
+  std::cout << "classes: ";
+  for (const int& cls : cfg.classes) {
+      std::cout << cls << " ";
+  }
+  std::cout << std::endl;
   std::cout << "===============================================" << std::endl;
 }
 
@@ -56,6 +62,12 @@ inline Config load_config(const std::string& config_file){
     cfg.conf = config["conf"].as<float>();
     cfg.nms_iou = config["nms_iou"].as<float>();
     cfg.threshold = config["threshold"].as<float>();
+    // 如果 classes 字段存在，则解析它，否则设置为空 vector
+    if (config["classes"]) {
+        cfg.classes = config["classes"].as<std::vector<int>>();
+    } else {
+        cfg.classes = std::vector<int>();
+    }
   } 
   catch (YAML::Exception& e) {
     std::cerr << "Error parsing YAML: " << e.what() << std::endl;

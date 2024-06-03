@@ -3,6 +3,7 @@
 **/video/
 **/**/build/
 **/**/weights/
+fd/cfg/*
 
 # Ignore weight file extensions
 *.weights

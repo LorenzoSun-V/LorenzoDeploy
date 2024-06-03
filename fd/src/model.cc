@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-04-26 14:21:37
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-05-24 13:56:02
+ * @LastEditTime: 2024-06-03 16:52:59
  * @Description: 
  */
 #include <iostream>
@@ -161,12 +161,14 @@ void Model::InferImage(const std::string& image_file){
     std::cout << res.Str() << std::endl;
     // 保存带有推理结果的图
     auto vis_image = VisDetectionCustom(image, res, cfg.conf);
-    fs::path output_path = fs::path(cfg.output_folder) / ("vis_" + fs::path(image_file).filename().string());
+    // fs::path output_path = fs::path(cfg.output_folder) / ("vis_" + fs::path(image_file).filename().string());
+    fs::path output_path = fs::path(cfg.output_folder) / (fs::path(image_file).stem().string() + "_vis" + fs::path(image_file).extension().string());
     cv::imwrite(output_path.string(), vis_image);
 
     // 保存满足阈值的原图
     if (save_ori){
-        fs::path output_path_ori = fs::path(cfg.output_folder) / "threshold_filter" / ("ori_" + fs::path(image_file).filename().string());
+        // fs::path output_path_ori = fs::path(cfg.output_folder) / "threshold_filter" / ("ori_" + fs::path(image_file).filename().string());
+        fs::path output_path_ori = fs::path(cfg.output_folder) / "threshold_filter" / (fs::path(image_file).stem().string() + "_ori" + fs::path(image_file).extension().string());
         SaveOriginalImage(image, output_path_ori, res);
     }
 }
@@ -186,7 +188,8 @@ void Model::InferImage(const std::string& image_file){
  */
 void Model::SaveOriginalImage(const cv::Mat& image, const std::string& save_path, const fastdeploy::vision::DetectionResult& res){
     for (size_t i = 0; i < res.boxes.size(); i++){
-        if (res.scores[i] > cfg.threshold){
+        if (res.scores[i] > cfg.threshold &&
+                        (cfg.classes.empty() || std::find(cfg.classes.begin(), cfg.classes.end(), res.label_ids[i]) != cfg.classes.end())){
             cv::imwrite(save_path, image);
             break;
         }
@@ -220,12 +223,14 @@ void Model::ProcessBatchImage(std::vector<cv::Mat>& batch_images, std::vector<st
         // 保存带有推理结果的图
         std::cout << batch_results->at(i).Str() << std::endl;
         auto vis_image = VisDetectionCustom(batch_images[i], batch_results->at(i), cfg.conf);
-        fs::path output_path = fs::path(cfg.output_folder) / ("vis_" + batch_names[i]);
+        // fs::path output_path = fs::path(cfg.output_folder) / ("vis_" + batch_names[i]);
+        fs::path output_path = fs::path(cfg.output_folder) / (fs::path(batch_names[i]).stem().string() + "_vis" + fs::path(batch_names[i]).extension().string());
         cv::imwrite(output_path.string(), vis_image);
 
         // 保存满足阈值的原图
         if (save_ori){
-            fs::path output_path_ori = fs::path(cfg.output_folder) / "threshold_filter" / ("ori_" + fs::path(batch_names[i]).filename().string());
+            // fs::path output_path_ori = fs::path(cfg.output_folder) / "threshold_filter" / ("ori_" + fs::path(batch_names[i]).filename().string());
+            fs::path output_path_ori = fs::path(cfg.output_folder) / "threshold_filter" /(fs::path(batch_names[i]).stem().string() + "_ori" + fs::path(batch_names[i]).extension().string());
             SaveOriginalImage(batch_images[i], output_path_ori.string(), batch_results->at(i));
         }
     }
@@ -304,12 +309,16 @@ void Model::ProcessBatchVideo(
         return;
     }
     for (size_t i = 0; i < batch_frames.size(); i++) {
+        // 推理视频时，无论 cfg.threshold 或者 cfg.classes 是多少，都保存带有推理结果的图
         auto vis_frame = VisDetectionCustom(batch_frames[i], batch_results->at(i), cfg.conf);
         video_writer.write(vis_frame);
+        // 在将带有推理结果的帧保存时，如果 0<cfg.threshold<1，则保存当前帧的结果图和原图
+        // 当 cfg.classes 不为空时，只保存指定类别的目标
         if (save_ori){
-            // 只将满足阈值的原图保存
             for (size_t j = 0; j < batch_results->at(i).boxes.size(); j++){
-                if (batch_results->at(i).scores[j] > cfg.threshold){
+                // 推理结果满足阈值且 1. 类别在classes中 2. classes为空（为空即为保存所有类别的目标） 则保存结果
+                if (batch_results->at(i).scores[j] > cfg.threshold && 
+                        (cfg.classes.empty() || std::find(cfg.classes.begin(), cfg.classes.end(), batch_results->at(i).label_ids[j]) != cfg.classes.end())){
                     fs::path output_path_ori = fs::path(cfg.output_folder) / "threshold_filter" / (fs::path(video_file).stem().string() + "_" + std::to_string(*num) + ".jpg");
                     fs::path output_path_vis = fs::path(cfg.output_folder) / "threshold_filter" / (fs::path(video_file).stem().string() + "_" + std::to_string(*num) + "_vis.jpg");
                     cv::imwrite(output_path_ori.string(), batch_frames[i]);
