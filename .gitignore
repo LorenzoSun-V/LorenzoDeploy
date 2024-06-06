@@ -4,6 +4,8 @@
 **/**/build/
 **/**/weights/
 fd/cfg/*
+weights/*
+test_files/*
 
 # Ignore weight file extensions
 *.weights

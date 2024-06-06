@@ -1,10 +1,10 @@
-model_path: /lorenzo/bt_repo/ultralytics/runs/kjg/yolov8m_20240222_cls2_kjg_v0.1.5/weights/best.onnx
-source_folder: /data/bt/kjg_multi/raw_zips/xingcheng/20240531 # /data/bt/kjg_multi/raw_zips/nanlutian/20240424  
-output_folder: ./yolov8m/kjg/xingcheng/20240531_yolov8m_20240222_cls2_kjg_v0.1.5_fp32
+model_path: /lorenzo/bt_repo/ultralytics/runs/kjg/yolov8m_b16_20240522_cls1_kjg_v0.4.12/weights/best.onnx
+source_folder: /data/bt/kjg_multi/raw_zips/1floor/20240506/Video_20240506110107814.mp4
+output_folder: ./yolov8m/kjg/1floor/20240506_yolov8m_b16_20240522_cls1_kjg_v0.4.12_fp32
 run_option: 1
 img_size: 640
 bs: 1              # batch size
 conf: 0.25
 nms_iou: 0.45
-threshold: 0.25     # 如果图片推理结果中有大于threshold的目标，则保存原图
+threshold: 1.0     # 如果图片推理结果中有大于threshold的目标，则保存原图
 classes: [0]

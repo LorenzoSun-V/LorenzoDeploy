@@ -21,9 +21,10 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   std::string yaml_path = argv[1];
-  Config cfg = load_config(yaml_path);
+  // Config cfg = load_config(yaml_path);
   YOLOv8Model model(yaml_path);
-  model.InferFolder();
+  // model.InferFolder();
+  model.Infer();
   // std::vector<std::string> batch_files = {
   //   "/lorenzo/deploy/LorenzoDeploy/fd/image/123/lQDPJwDerLc_-7HNASDNAYCwGt89uTCKll8GHPkepI_mAQ_384_288.jpg",
   //   "/lorenzo/deploy/LorenzoDeploy/fd/image/123/lQDPJx1BiY8BW7HNAeDNAoCwJOSsNR8rO9kGHPkepI_mAg_640_480.jpg",

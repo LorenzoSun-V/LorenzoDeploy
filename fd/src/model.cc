@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-04-26 14:21:37
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-06-03 16:52:59
+ * @LastEditTime: 2024-06-04 08:52:45
  * @Description: 
  */
 #include <iostream>
@@ -427,6 +427,28 @@ void Model::InferFolder(){
             else if (extension == ".mp4" || extension == ".avi")
                 InferVideo(file_path);
         }
+    }
+}
+
+void Model::Infer(){
+    if (!fs::exists(cfg.source_folder)){
+        std::cout << "Source folder not found: " << cfg.source_folder << std::endl;
+    }
+    fs::create_directories(cfg.output_folder);
+    if (cfg.threshold < 1 && cfg.threshold > 0){
+        fs::path threshold_filter = fs::path(cfg.output_folder) / "threshold_filter";
+        fs::create_directories(threshold_filter);
+    }
+    if (fs::is_directory(cfg.source_folder)){
+        InferFolder();
+    }
+    else{
+        auto extension = fs::path(cfg.source_folder).extension().string();
+        std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+        if (extension == ".jpg" || extension == ".png" || extension == ".jpeg" || extension == ".bmp")
+            InferImage(cfg.source_folder);
+        else if (extension == ".mp4" || extension == ".avi")
+            InferVideo(cfg.source_folder);
     }
 }
 

@@ -1,6 +1,6 @@
-model_path: /lorenzo/bt_repo/yolov5/yolov5-v7.0/runs/xray-gs/model5_b32s_20240603_cls4_xray-gs-sub_v0.1.7/weights/best.onnx
+model_path: /lorenzo/bt_repo/yolov5/yolov5-v7.0/runs/xray-gs/model5_b32s_20240604_cls4_xray-gs-sub_v0.1.7/weights/best.onnx
 source_folder: /data/bt/xray_gangsi/raw_zips/liyang/20240603/all # /data/bt/kjg_multi/raw_zips/nanlutian/20240424  
-output_folder: ./yolov5s/xray-gs-sub/liyang/20240603_model5_b32s_20240603_cls4_xray-gs-sub_v0.1.7
+output_folder: ./yolov5s/xray-gs-sub/liyang/20240603_model5_b32s_20240604_cls4_xray-gs-sub_v0.1.7
 run_option: 1
 img_size: 640
 bs: 1              # batch size

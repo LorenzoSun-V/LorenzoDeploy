@@ -31,7 +31,7 @@ public:
     void InferImagesBatch(const std::vector<std::string>& batch_files);
     void InferVideo(const std::string& video_file);
     void InferFolder();
-
+    void Infer();
 };
 
 
