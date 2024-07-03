@@ -1,0 +1,14 @@
+prefix=../ffmpeg_install
+exec_prefix=${prefix}
+libdir=../ffmpeg_install/lib
+includedir=../ffmpeg_install/include
+
+Name: libavcodec
+Description: FFmpeg codec library
+Version: 60.3.100
+Requires: 
+Requires.private: libswresample >= 4.10.100, libavutil >= 58.2.100
+Conflicts:
+Libs: -L${libdir}  -lavcodec 
+Libs.private: -pthread -lm -latomic -L/usr/local/lib -lnvmpi -lz
+Cflags: -I${includedir}
