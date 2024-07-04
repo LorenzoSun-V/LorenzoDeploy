@@ -3,7 +3,7 @@
  * @Description: yolov5模型推理接口
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-07-01 10:55:25
+ * @LastEditTime: 2024-07-04 11:54:33
  */
 #include "yolov5infer.h"
 #include "yolov5.h"
@@ -56,7 +56,7 @@ ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInsta
     bool bOK = _instance->_param->yolov5model.loadModel(pWeightsfile);
     if( !bOK ) {
         delete _instance;
-        _instance = NULL;
+        pDeepInstance = NULL;
         return ERR_MODEL_DESERIALIZE_FAIL;
     }
     _instance->_param->bParamIsOk = true; 
@@ -119,7 +119,7 @@ ENUM_ERROR_CODE DestoryDeepmodeInstance( void *pDeepInstance)
   	if (_instance)
     {
         delete _instance;
-        _instance = NULL;
+        pDeepInstance = NULL;
     }
          
 

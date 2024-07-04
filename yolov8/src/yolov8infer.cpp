@@ -3,7 +3,7 @@
  * @Description:  yolov8模型推理接口
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-06-28 17:06:29
+ * @LastEditTime: 2024-07-04 11:54:40
  */
 
 #include <string>
@@ -65,7 +65,7 @@ ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInsta
     bool bOk = _instance->_param->yolov8model.loadModel(pWeightsfile);
     if( !bOk ) {
         delete _instance;
-        _instance = NULL;
+        pDeepInstance = NULL;
         return ERR_MODEL_DESERIALIZE_FAIL;
     }
 
@@ -124,7 +124,7 @@ ENUM_ERROR_CODE DestoryDeepmodeInstance( void *pDeepInstance)
 	if (_instance)
     {    
         delete _instance;
-        _instance = NULL;
+        pDeepInstance = NULL;
     }
          
 

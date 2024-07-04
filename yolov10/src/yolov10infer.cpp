@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-20 13:37:13
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-07-03 09:02:07
+ * @LastEditTime: 2024-07-04 11:54:25
  * @Description: yolov10模型推理接口
  */
 
@@ -63,7 +63,7 @@ ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInsta
     }
     if (!_instance->_param->yolov10model.loadModel(pWeightsfile)){
         delete _instance;
-        _instance = NULL;
+        pDeepInstance = NULL;
         return ERR_MODEL_DESERIALIZE_FAIL;
     }
 
@@ -120,7 +120,7 @@ ENUM_ERROR_CODE DestoryDeepmodeInstance(void *pDeepInstance)
 	if (_instance)
     {    
         delete _instance;
-        _instance = NULL;
+        pDeepInstance = NULL;
     }
          
 

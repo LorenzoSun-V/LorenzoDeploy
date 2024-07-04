@@ -1,11 +1,18 @@
+/*
+ * @Author: BTZN0325 sunjiahui@boton-tech.com
+ * @Date: 2024-07-03 13:49:06
+ * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
+ * @LastEditTime: 2024-07-04 08:28:24
+ * @Description: 
+ */
 #define USE_FP16
 //#define USE_FP32
-//#define USE_INT8
+// #define USE_INT8
 
 const static char *kInputTensorName = "images";
 const static char *kOutputTensorName = "output";
 const static int kNumClass = 2;
-const static int kBatchSize = 1;
+const static int kBatchSize = 8;
 const static int kGpuId = 0;
 const static int kInputH = 640;
 const static int kInputW = 640;
