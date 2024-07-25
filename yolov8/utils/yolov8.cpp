@@ -11,6 +11,7 @@ YOLOV8ModelManager::~YOLOV8ModelManager() {
     if (engine) cudaFreeHost(engine);
     if (runtime) cudaFreeHost(runtime);
     cudaStreamDestroy(stream);
+    cuda_preprocess_destroy();
 
     CUDA_CHECK(cudaFree(device_buffers[0]));
     CUDA_CHECK(cudaFree(device_buffers[1]));
@@ -88,19 +89,19 @@ bool YOLOV8ModelManager::prepareBuffer() {
         return false; 
     }
 
-    const int inputIndex = engine->getBindingIndex(kInputTensorName);
-    const int outputIndex = engine->getBindingIndex(kOutputTensorName);
-    if(inputIndex != 0){
-        std::cerr << "Error: Input tensor name is not " << kInputTensorName << "!" << std::endl;
-        return false;
-    } 
-    if(outputIndex != 1){
-        std::cerr << "Error: Output tensor name is not " << kOutputTensorName << "!" << std::endl;
-        return false;
-    }
+    // const int inputIndex = engine->getBindingIndex(kInputTensorName);
+    // const int outputIndex = engine->getBindingIndex(kOutputTensorName);
+    // if(inputIndex != 0){
+    //     std::cerr << "Error: Input tensor name is not " << kInputTensorName << "!" << std::endl;
+    //     return false;
+    // } 
+    // if(outputIndex != 1){
+    //     std::cerr << "Error: Output tensor name is not " << kOutputTensorName << "!" << std::endl;
+    //     return false;
+    // }
 
     m_kBatchSize = engine->getMaxBatchSize();
-    auto inputDims = engine->getBindingDimensions(inputIndex);
+    auto inputDims = engine->getBindingDimensions(0);
     m_channel = inputDims.d[0];
     m_kInputH = inputDims.d[1];
     m_kInputW = inputDims.d[2];
@@ -124,9 +125,16 @@ void YOLOV8ModelManager::infer(std::vector<cv::Mat> img_batch, std::vector<std::
         std::cout <<"device_buffers is empty"<< std::endl;
         return;
     }
+    cuda_batch_preprocess(img_batch, device_buffers[0], m_kInputW, m_kInputH, stream);
+
     // infer on the batch asynchronously, and DMA output back to host
     //auto start = std::chrono::system_clock::now();
-    context->enqueue(m_kBatchSize, (void **)device_buffers, stream, nullptr);
+    void* bindings[] = { device_buffers[0], device_buffers[1] };
+    if (!context->enqueueV2(bindings, stream, nullptr)) {
+        std::cerr << "Failed to enqueue inference." << std::endl;
+        return ;
+    }
+    //context->enqueue(m_kBatchSize, (void **)device_buffers, stream, nullptr);
 
     if (m_kBatchSize > 1) {
         CUDA_CHECK(cudaMemcpyAsync(output_buffer_host, device_buffers[1], m_kBatchSize * kOutputSize * sizeof(float), cudaMemcpyDeviceToHost, stream));
@@ -156,8 +164,6 @@ bool YOLOV8ModelManager::inference(cv::Mat& frame, std::vector<DetBox>& detBoxs)
 
     // Preprocess
     std::vector<cv::Mat> img_batch = {frame};
-    cuda_batch_preprocess(img_batch, device_buffers[0], kInputW, kInputH, stream);
-
     std::vector<std::vector<Detection>> res_batch;
     infer(img_batch, res_batch);
 
@@ -166,7 +172,7 @@ bool YOLOV8ModelManager::inference(cv::Mat& frame, std::vector<DetBox>& detBoxs)
         detres.classID = obj.class_id;
         detres.confidence = obj.conf;
 
-        cv::Rect r = get_rect(frame, obj.bbox);
+        cv::Rect r = get_rect(frame,m_kInputW, m_kInputH, obj.bbox);
 
         detres.x = std::max(0, r.x);
         detres.y = std::max(0, r.y);
@@ -193,7 +199,6 @@ bool YOLOV8ModelManager::batchInference(std::vector<cv::Mat>& img_frames, std::v
             img_batch.push_back(img_frames[j]);
         }
 
-        cuda_batch_preprocess(img_batch, device_buffers[0], kInputW, kInputH, stream);
         std::vector<std::vector<Detection>> res_batch;
         infer(img_batch, res_batch);
 
@@ -205,7 +210,7 @@ bool YOLOV8ModelManager::batchInference(std::vector<cv::Mat>& img_frames, std::v
                 detbox.classID = obj.class_id;
                 detbox.confidence = obj.conf;
 
-                cv::Rect r = get_rect(img_batch[index], obj.bbox);
+                cv::Rect r = get_rect(img_batch[index], m_kInputW, m_kInputH, obj.bbox);
                 detbox.x = std::max(0, r.x);
                 detbox.y = std::max(0, r.y);
                 detbox.w = r.width;

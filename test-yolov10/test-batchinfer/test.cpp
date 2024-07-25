@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-21 13:09:55
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-07-03 09:02:42
+ * @LastEditTime: 2024-07-16 16:08:12
  * @Description: 
  */
 #include <string>
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 
     void * pDNNInstance= NULL; 
     ENUM_ERROR_CODE eOK =  LoadDeepModelModules(pWeightsfile, &pDNNInstance);
-    if(eOK != ENUM_OK && NULL == pDNNInstance){
+    if(eOK != ENUM_OK){
         std::cout<<"can not get pDNNInstance!"<<std::endl;
         return -1;
     } 
@@ -63,21 +63,19 @@ int main(int argc, char* argv[])
     BatchInferenceGetDetectResult(pDNNInstance, batchframes, batchDetBoxs); 
     double t_detect_end = GetCurrentTimeStampMS();  
     size_t ndetboxs = batchDetBoxs.size();
-    int framenum = static_cast<int>(batchframes.size()); 
+    int frame_num = static_cast<int>(batchframes.size()); 
     
-    for(int i=0; i < framenum && ndetboxs >0; i++){
+    for(int i=0; i < frame_num && ndetboxs >0; i++){
         std::string imagename = "image_"+int2string(i)+".jpg";
         DrawRectDetectResultForImage(batchframes[i], batchDetBoxs[i]);   
         cv::imwrite(imagename, batchframes[i]);
     }
-
+    
+    double total_time =  t_detect_end - t_detect_start;
     DestoryDeepmodeInstance(pDNNInstance);
-    fprintf(stdout, "Total detection time %.02lfms\n", t_detect_end - t_detect_start);
-    std::cout << "Average fps: " << framenum * 1000 / (t_detect_end - t_detect_start) << std::endl;	           
+    fprintf(stdout, "Total detection time %.02lfms\n", total_time);
+    std::cout << "Average fps: " << 1000 /(total_time / frame_num) << std::endl; 
+
     std::cout << "Finish !"<<std::endl;
     return 0;
 }
-
-// export LD_LIBRARY_PATH=/home/bt/libs
-
-// ./testbatch /home/mic-710aix/Downloads/valimage/val_imgs /home/mic-710aix/tensorrtx/yolov8/yolov8m_20240319_cls4_zs_v0.1.engine

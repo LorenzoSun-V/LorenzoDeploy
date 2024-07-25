@@ -3,7 +3,7 @@
  * @Description: yolov5模型推理接口
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-07-04 11:54:33
+ * @LastEditTime: 2024-07-04 11:47:12
  */
 #include "yolov5infer.h"
 #include "yolov5.h"

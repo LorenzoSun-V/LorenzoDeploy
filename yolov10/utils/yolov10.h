@@ -11,7 +11,8 @@
 #include "opencv2/opencv.hpp"
 #include "cuda.h"
 #include "NvInfer.h"
-#include "NvOnnxParser.h"
+#include "preprocess.h"
+
 #include "common.h"
 #include <fstream>
 #include <iostream>
@@ -52,6 +53,7 @@ private:
     bool doInference(const std::vector<cv::Mat> img_batch, std::vector<std::vector<DetBox>>& batchDetBoxes);
     void preProcess(std::vector<cv::Mat> frame, std::vector<float>& data);
     bool postProcess(float* result, std::vector<std::vector<DetBox>>& detBoxs);
+    bool postProcess2(float* result, std::vector<cv::Mat> img_batch, std::vector<std::vector<DetBox>>& detBoxs);
 
     // Deserialize the engine from file
     Logger gLogger;
@@ -59,8 +61,10 @@ private:
     ICudaEngine* engine;
     IExecutionContext* context;
     cudaStream_t stream;
-    void* inputSrcDevice;
-    void* outputSrcDevice;
+    int kMaxInputImageSize;
+    float* inputSrcDevice;
+    float* outputSrcDevice;
+
     std::vector<float> inputData;
     std::vector<float> output_data;
 };

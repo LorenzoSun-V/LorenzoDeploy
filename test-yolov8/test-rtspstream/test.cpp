@@ -77,7 +77,6 @@ int main(int argc, char* argv[])
         eOK = WriteOneFrameToInstance(pSaveVideoInstance, frame);
         if(eOK == ENUM_OK)
         {
-        
 	        if(framenum == frame_fps*savetime ) 
 	        {
                 cout<<"Complete save video!"<<endl;	
@@ -89,14 +88,8 @@ int main(int argc, char* argv[])
 #endif      
 
     }
-
-	
-
     DestoryRtspStreamDecoderInstance( pVideostreamInstance);
     DestoryDeepmodeInstance(pDNNInstance);           
     std::cout << "Finish !"<<endl;
     return 0;
 }
-
-// export LD_LIBRARY_PATH=/home/mic-710aix/nvlibs
-// ./test-rtspstream /home/mic-710aix/model/yolov8m_20240320_cls4_zs_v0.1.engine rtsp://admin:bts808080@192.168.30.64:554/h264/ch1/main/av_stream 

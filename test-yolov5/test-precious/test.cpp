@@ -50,8 +50,8 @@ int main(int argc, char* argv[])
 		std::cout<<"example: ./binary imagepath weightsfile "<<std::endl;
 		exit(-1);
  	}
-    const char* folderPath = argv[1];
-    const char* pWeightsfile = argv[2];
+    const char* folderPath = argv[2];
+    const char* pWeightsfile = argv[1];
     
     cv::Mat frame;   	    
     void * pDNNInstance= NULL; 

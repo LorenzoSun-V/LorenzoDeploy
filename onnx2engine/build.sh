@@ -6,7 +6,7 @@
  # @LastEditTime: 2024-07-01 10:35:53
  # @Description: 
 ### 
-
+rm -rf build
 mkdir build
 cd build
 cmake .. -DTRT_PATH=/lorenzo/env/install/TensorRT-8.6.1.6

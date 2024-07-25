@@ -32,19 +32,19 @@ bool YOLOV5Model::prepareBuffer()
 
     // In order to bind the buffers, we need to know the names of the input and output tensors.
     // Note that indices are guaranteed to be less than IEngine::getNbBindings()
-    const int inputIndex = engine->getBindingIndex(kInputTensorName);
-    const int outputIndex = engine->getBindingIndex(kOutputTensorName);
-    if(inputIndex != 0){
-        std::cerr << "Error: Input tensor name is not " << kInputTensorName << "!" << std::endl;
-        return false;
-    } 
-    if(outputIndex != 1){
-        std::cerr << "Error: Output tensor name is not " << kOutputTensorName << "!" << std::endl;
-        return false;
-    } 
+    // const int inputIndex = engine->getBindingIndex(kInputTensorName);
+    // const int outputIndex = engine->getBindingIndex(kOutputTensorName);
+    // if(inputIndex != 0){
+    //     std::cerr << "Error: Input tensor name is not " << kInputTensorName << "!" << std::endl;
+    //     return false;
+    // } 
+    // if(outputIndex != 1){
+    //     std::cerr << "Error: Output tensor name is not " << kOutputTensorName << "!" << std::endl;
+    //     return false;
+    // } 
 
     m_kBatchSize = engine->getMaxBatchSize();
-    auto inputDims = engine->getBindingDimensions(inputIndex);
+    auto inputDims = engine->getBindingDimensions(0);
     m_channel = inputDims.d[0];
     m_kInputH = inputDims.d[1];
     m_kInputW = inputDims.d[2];
@@ -150,7 +150,7 @@ bool YOLOV5Model::inference(cv::Mat& frame, std::vector<DetBox>& detBoxs) {
         detbox.classID = obj.class_id;
         detbox.confidence = obj.conf;
 
-        cv::Rect r = get_rect(img_batch[0], obj.bbox);
+        cv::Rect r = get_rect(img_batch[0], m_kInputW, m_kInputH, obj.bbox);
         detbox.x = std::max(0, r.x);
         detbox.y = std::max(0, r.y);
 
@@ -191,7 +191,7 @@ bool YOLOV5Model::batchInference(std::vector<cv::Mat>& batchframes, std::vector<
                 detbox.classID = obj.class_id;
                 detbox.confidence = obj.conf;
 
-                cv::Rect r = get_rect(img_batch[index], obj.bbox);
+                cv::Rect r = get_rect(img_batch[index], m_kInputW, m_kInputH, obj.bbox);
                 detbox.x = std::max(0, r.x);
                 detbox.y = std::max(0, r.y);
 

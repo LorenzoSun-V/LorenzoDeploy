@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-21 14:19:07
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-07-01 15:21:11
+ * @LastEditTime: 2024-07-03 15:21:43
  * @Description: YOLOv10 精度处理代码
  */
 #include <iostream>
@@ -52,13 +52,13 @@ void writeDetectionResults(const std::vector<DetBox>& detResult, const std::stri
 
 int main(int argc, char* argv[]) 
 {
-	if(argc < 3){
+    if(argc < 3){
         cout<<"param1: the make binary;"<<endl;
         cout<<"param2: input the detect image file;"<<endl;
         cout<<"param3: model path is the model and prototxt path;"<<endl;
         // cout<<"example: ./binary weightsfile imagepath saveimage=1"<<endl;
         exit(-1);
- 	}
+    }
     
     const char* folderPath = argv[1];
     const char* pWeightsfile = argv[2];
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
     cv::Mat frame;
     void * pDNNInstance= NULL; 
     ENUM_ERROR_CODE eOK =  LoadDeepModelModules(pWeightsfile, &pDNNInstance);
-    if(eOK != ENUM_OK && NULL == pDNNInstance){
+    if(eOK != ENUM_OK){
         cout<<"can not get pDNNInstance!"<<endl;
         return -1;
     } 

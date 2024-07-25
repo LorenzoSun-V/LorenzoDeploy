@@ -4,7 +4,7 @@ export LD_LIBRARY_PATH=/home/mic-710aix/nvlibs
 ```
 ## 测试单batch推理
 ```
-./test-infer /home/mic-710aix/yolov8m_20240320_cls4_zs_v0.1.engine /home/mic-710aix/valimage/frame_1693987947744_35.jpg 
+./test-infer /home/mic-710aix/model/yolov8m_20240320_cls4_zs_v0.1.engine /home/mic-710aix/valimage/
 ```
 ## 测试多batch推理
 ```

@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-21 13:09:55
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-07-02 15:44:17
+ * @LastEditTime: 2024-07-17 10:33:23
  * @Description: 
  */
 #include <string>
@@ -24,12 +24,12 @@ std::string int2string(int x)
 int main(int argc, char* argv[])
 {
     if(argc < 2) {
-          std::cout<<"example: ./binary imagedir .bin"<<std::endl;
+          std::cout<<"example: ./binary .bin imagedir"<<std::endl;
           exit(-1);
     }
 
-    const char* pimagedir = argv[1];
-    const char* pWeightsfile = argv[2];
+    const char* pimagedir = argv[2];
+    const char* pWeightsfile = argv[1];
           
     if(pimagedir == NULL || pWeightsfile == NULL)
     {
@@ -78,8 +78,4 @@ int main(int argc, char* argv[])
     std::cout << "Finish !"<<std::endl;
     return 0;
 }
-
-// export LD_LIBRARY_PATH=/home/bt/libs
-
-//  ./testinfer /home/mic-710aix/valimage  /home/mic-710aix/model/yolov8m_20240320_cls4_zs_v0.1.engine
 

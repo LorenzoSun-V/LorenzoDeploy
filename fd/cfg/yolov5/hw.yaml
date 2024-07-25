@@ -1,9 +1,10 @@
-model_path: /lorenzo/bt_repo/yolov5/yolov5-v7.0/runs/hw/yolov5s-v7.0_b128_20240509_cls2_hw_v0.1.5/weights/best.onnx
-source_folder: /data/bt/hw_multi/raw_zips/1floor/20240424  #/data/bt/hw_multi/raw/1floor/20240508/images
-output_folder: ./yolov5s/hw/1floor/20240524_yolov5s-v7.0_b128_20240509_cls2_hw_v0.1.5_test
+model_path: /lorenzo/bt_repo/yolov5/yolov5-v7.0/runs/hw/model5_b128s_20240509_cls2_hw_v0.1.5/weights/best.onnx
+source_folder: /data/bt/hw_multi/raw_zips/huanghuagang/20240724  #/data/bt/hw_multi/raw/1floor/20240508/images
+output_folder: ./yolov5s/hw/huanghuagang/20240724_model5_b128s_20240509_cls2_hw_v0.1.5
 run_option: 1
 img_size: 320
 bs: 1              # batch size
 conf: 0.25
 nms_iou: 0.45
-threshold: 1.0     # 如果图片推理结果中有大于threshold的目标，则保存原图
+threshold: 0.75     # 如果图片推理结果中有大于threshold的目标，则保存原图
+classes: [0,1]

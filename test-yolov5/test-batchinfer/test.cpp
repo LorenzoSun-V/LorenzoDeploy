@@ -24,8 +24,8 @@ int main(int argc, char* argv[])
       exit(-1);
     }
     
-    const char* pimagedir = argv[1];
-    const char* pWeightsfile= argv[2];
+    const char* pimagedir = argv[2];
+    const char* pWeightsfile= argv[1];
       
     if(pimagedir == NULL || pWeightsfile == NULL)
     {
@@ -58,17 +58,17 @@ int main(int argc, char* argv[])
     BatchInferenceGetDetectResult(pDNNInstance, batchframes, batchDetBoxs); 
     double t_detect_end = GetCurrentTimeStampMS();  
     //将结果进行保存   
-    int framenum = static_cast<int>(batchframes.size());  
-    for(int i=0; i < framenum; i++)
+    int frame_num = static_cast<int>(batchframes.size());  
+    for(int i=0; i < frame_num; i++)
     {
         std::string imagename = "image"+int2string(i)+".jpg";
         DrawRectDetectResultForImage(batchframes[i], batchDetBoxs[i]);   
         cv::imwrite(imagename, batchframes[i] );
     }
-    
+    double total_time = t_detect_end - t_detect_start;
     DestoryDeepmodeInstance(pDNNInstance);	  
-    fprintf(stdout, "Total detection time %.02lfms\n", t_detect_end - t_detect_start);
-    std::cout << "Average fps: " << framenum * 1000 / (t_detect_end - t_detect_start) << std::endl;	          
+    fprintf(stdout, "Total detection time %.02lfms\n", total_time);
+    std::cout << "Average fps: " << 1000 /(total_time / frame_num) << std::endl;             
     std::cout << "Finish !"<<std::endl;
     return 0;
 }

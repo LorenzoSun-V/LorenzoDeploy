@@ -2,9 +2,12 @@
 
 #include <opencv2/opencv.hpp>
 #include "NvInfer.h"
-#include "types.h"
 #include <map>
 #include <iostream>
+
+struct AffineMatrix {
+    float value[6];
+};
 
 void cuda_preprocess_init(int max_image_size);
 

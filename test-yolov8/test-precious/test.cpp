@@ -53,8 +53,8 @@ int main(int argc, char* argv[])
         exit(-1);
  	}
     
-    const char* folderPath = argv[1];
-    const char* pWeightsfile = argv[2];
+    const char* folderPath = argv[2];
+    const char* pWeightsfile = argv[1];
 
     cv::Mat frame;
     void * pDNNInstance= NULL; 
@@ -110,6 +110,3 @@ int main(int argc, char* argv[])
     std::cout << "Finish !"<<endl;
     return 0;
 }
-
-// export LD_LIBRARY_PATH=/home/bt/libs
-//./testprecious /home/mic-710aix/tensorrtx/yolov8/build/yolov8m_20240320_cls4_zs_v0.1.engine  /home/mic-710aix/Downloads/valimage/test/

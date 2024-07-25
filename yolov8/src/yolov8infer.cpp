@@ -3,7 +3,7 @@
  * @Description:  yolov8模型推理接口
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-07-04 11:54:40
+ * @LastEditTime: 2024-07-04 11:47:17
  */
 
 #include <string>

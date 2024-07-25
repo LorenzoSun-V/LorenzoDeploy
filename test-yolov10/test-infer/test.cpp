@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-20 16:20:55
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-07-03 10:22:48
+ * @LastEditTime: 2024-07-03 15:22:38
  * @Description: YOLOv10 单batch测试代码
  */
 #include <string>
@@ -24,20 +24,20 @@ std::string int2string(int x)
 
 int main(int argc, char* argv[])
 {
-	if(argc < 2) {
+    if(argc < 2) {
         std::cout<<"example: ./binary image_folder .bin"<<std::endl;
         exit(-1);
-	}
+    }
 
-	const char* pimagedir = argv[1];
-	const char* pWeightsfile = argv[2];
+    const char* pimagedir = argv[2];
+    const char* pWeightsfile = argv[1];
         
-	if(pimagedir == NULL || pWeightsfile == NULL){
+    if(pimagedir == NULL || pWeightsfile == NULL){
         std::cout<<"input param error!"<<std::endl;
         return -1;
-	}
-	
-	std::vector<cv::Mat> frames; 
+    }
+    
+    std::vector<cv::Mat> frames; 
     std::vector<std::string> imagePaths = getImagePaths(pimagedir);
     cv::Mat frame; 
     for (const std::string& imagePath : imagePaths) {
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
 
     void * pDNNInstance= NULL; 
     ENUM_ERROR_CODE eOK =  LoadDeepModelModules(pWeightsfile, &pDNNInstance);
-    if(eOK != ENUM_OK && NULL == pDNNInstance){
+    if(eOK != ENUM_OK){
         std::cout<<"can not get pDNNInstance!"<<std::endl;
         return -1;
     } 
@@ -58,7 +58,6 @@ int main(int argc, char* argv[])
     double total_time = 0.0;
     for (int i=0; i < frame_num; i++){
         std::vector<DetBox> detBoxs;
-        detBoxs.clear();
         double t_detect_start = GetCurrentTimeStampMS();
         InferenceGetDetectResult(pDNNInstance, frames[i], detBoxs);
         double t_detect_end = GetCurrentTimeStampMS();  
@@ -69,9 +68,9 @@ int main(int argc, char* argv[])
         cv::imwrite(imagename, frames[i]);
     }
 
-    DestoryDeepmodeInstance(pDNNInstance);
     std::cout << "Total detection time: " << total_time << "ms" << std::endl;
     std::cout << "Average fps: " << frame_num / total_time * 1000 << std::endl;
     std::cout << "Finish !"<<std::endl;
+    DestoryDeepmodeInstance(pDNNInstance);
     return 0;
 }

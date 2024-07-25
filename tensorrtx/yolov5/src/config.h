@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2023-12-27 10:00:00
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-04-30 14:29:50
+ * @LastEditTime: 2024-07-17 09:48:45
  * @Description: 
  */
 #pragma once
@@ -18,11 +18,11 @@
 
 // These are used to define input/output tensor names,
 // you can set them to whatever you want.
-const static char* kInputTensorName = "data";
-const static char* kOutputTensorName = "prob";
+const static char* kInputTensorName = "images";
+const static char* kOutputTensorName = "output0";
 
 // Detection model and Segmentation model' number of classes
-constexpr static int kNumClass = 4;
+constexpr static int kNumClass = 2;
 
 // Classfication model's number of classes
 constexpr static int kClsNumClass = 1000;
@@ -30,8 +30,8 @@ constexpr static int kClsNumClass = 1000;
 constexpr static int kBatchSize = 16;
 
 // Yolo's input width and height must by divisible by 32
-constexpr static int kInputH = 640;
-constexpr static int kInputW = 640;
+constexpr static int kInputH = 320;
+constexpr static int kInputW = 320;
 
 // Classfication model's input shape
 constexpr static int kClsInputH = 224;

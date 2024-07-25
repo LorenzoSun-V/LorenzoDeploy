@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-20 13:37:13
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-07-04 11:54:25
+ * @LastEditTime: 2024-07-04 11:47:02
  * @Description: yolov10模型推理接口
  */
 
@@ -61,6 +61,7 @@ ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInsta
          std::cout <<  "Init YOLOV10ModelInstance failed." << std::endl;
         return ERR_NO_FREE_MEMORY;
     }
+    
     if (!_instance->_param->yolov10model.loadModel(pWeightsfile)){
         delete _instance;
         pDeepInstance = NULL;
@@ -122,8 +123,7 @@ ENUM_ERROR_CODE DestoryDeepmodeInstance(void *pDeepInstance)
         delete _instance;
         pDeepInstance = NULL;
     }
-         
-
+        
     return ENUM_OK;
 }
 

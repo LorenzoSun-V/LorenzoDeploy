@@ -1,7 +1,7 @@
 #include "postprocess.h"
 #include "utils.h"
 
-cv::Rect get_rect(cv::Mat &img, float bbox[4]) {
+cv::Rect get_rect(cv::Mat &img, int kInputW, int kInputH, float bbox[4]) {
     float l, r, t, b;
     float r_w = kInputW / (img.cols * 1.0);
     float r_h = kInputH / (img.rows * 1.0);
@@ -115,7 +115,7 @@ void draw_bbox(std::vector<cv::Mat> &img_batch, std::vector<std::vector<Detectio
         auto &res = res_batch[i];
         cv::Mat img = img_batch[i];
         for (size_t j = 0; j < res.size(); j++) {
-            cv::Rect r = get_rect(img, res[j].bbox);
+            cv::Rect r = get_rect(img, kInputW, kInputH, res[j].bbox);
             cv::rectangle(img, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
             cv::putText(img, std::to_string((int) res[j].class_id), cv::Point(r.x, r.y - 1), cv::FONT_HERSHEY_PLAIN,
                         1.2, cv::Scalar(0xFF, 0xFF, 0xFF), 2);
@@ -155,7 +155,7 @@ void draw_mask_bbox(cv::Mat& img, std::vector<Detection>& dets, std::vector<cv::
     auto color = colors[(int)dets[i].class_id % colors.size()];
     auto bgr = cv::Scalar(color & 0xFF, color >> 8 & 0xFF, color >> 16 & 0xFF);
 
-    cv::Rect r = get_rect(img, dets[i].bbox);
+    cv::Rect r = get_rect(img, kInputW, kInputH, dets[i].bbox);
     for (int x = r.x; x < r.x + r.width; x++) {
       for (int y = r.y; y < r.y + r.height; y++) {
         float val = img_mask.at<float>(y, x);

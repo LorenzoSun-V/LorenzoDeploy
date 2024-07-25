@@ -36,8 +36,8 @@ int main(int argc, char* argv[])
           exit(-1);
     }
 
-    const char* pimagedir = argv[1];
-    const char* pWeightsfile = argv[2];
+    const char* pimagedir = argv[2];
+    const char* pWeightsfile = argv[1];
           
     if(pimagedir == NULL || pWeightsfile == NULL)
     {
@@ -81,8 +81,8 @@ int main(int argc, char* argv[])
       }
 
     DestoryDeepmodeInstance(pDNNInstance);	      
-    std::cout << "Total detection time: " << total_time << "ms" << std::endl;
-    std::cout << "Average fps: " << frame_num / total_time * 1000 << std::endl;     
+    std::cout << "Total detection time: " << total_time << "ms" <<"frame_num: "<<frame_num<< std::endl;
+    std::cout << "Average fps: " << 1000 /(total_time / frame_num) << std::endl;     
     std::cout << "Finish !"<<std::endl;
     return 0;
 }
