@@ -62,7 +62,7 @@ pip install ultralytics
 
 2. Prepare tensorrt engine
 
-    Use binary `trtexec` or [onnx2engine](../onnx2engine/README.md) in `bt_alg_api` to get tensorrt engine.
+    Use binary `trtexec` or [onnx2engine](../../onnx2engine/README.md) in `bt_alg_api` to get tensorrt engine.
 
     ```
     ./trtexec --onnx=${onnx_nms_path} --saveEngine=${output_engine_path} --workspace=9000 --verbose   
