@@ -32,23 +32,23 @@ bool YOLOV5Model::prepareBuffer()
 
     // In order to bind the buffers, we need to know the names of the input and output tensors.
     // Note that indices are guaranteed to be less than IEngine::getNbBindings()
-    // const int inputIndex = engine->getBindingIndex(kInputTensorName);
-    // const int outputIndex = engine->getBindingIndex(kOutputTensorName);
-    // if(inputIndex != 0){
-    //     std::cerr << "Error: Input tensor name is not " << kInputTensorName << "!" << std::endl;
-    //     return false;
-    // } 
-    // if(outputIndex != 1){
-    //     std::cerr << "Error: Output tensor name is not " << kOutputTensorName << "!" << std::endl;
-    //     return false;
-    // } 
+    const int inputIndex = engine->getBindingIndex(kInputTensorName);
+    const int outputIndex = engine->getBindingIndex(kOutputTensorName);
+    if(inputIndex != 0){
+        std::cerr << "Error: Input tensor name is not " << kInputTensorName << "!" << std::endl;
+        return false;
+    } 
+    if(outputIndex != 1){
+        std::cerr << "Error: Output tensor name is not " << kOutputTensorName << "!" << std::endl;
+        return false;
+    } 
 
     m_kBatchSize = engine->getMaxBatchSize();
-    auto inputDims = engine->getBindingDimensions(0);
+    auto inputDims = engine->getBindingDimensions(inputIndex);
     m_channel = inputDims.d[0];
     m_kInputH = inputDims.d[1];
     m_kInputW = inputDims.d[2];
-    std::cout << "Input tensor: " << m_kBatchSize << "x" << m_channel << "x" << m_kInputH << "x" << m_kInputW << std::endl;
+    std::cout << "m_kBatchSize: " << m_kBatchSize << "m_channel: " << m_channel << "m_kInputH: " << m_kInputH << "m_kInputW: " << m_kInputW << std::endl;
 
     // Create GPU buffers on device
     CUDA_CHECK(cudaMalloc((void**)&device_buffers[0], m_kBatchSize * m_channel * m_kInputH * m_kInputW * sizeof(float)));

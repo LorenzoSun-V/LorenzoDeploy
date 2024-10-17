@@ -89,23 +89,23 @@ bool YOLOV8ModelManager::prepareBuffer() {
         return false; 
     }
 
-    // const int inputIndex = engine->getBindingIndex(kInputTensorName);
-    // const int outputIndex = engine->getBindingIndex(kOutputTensorName);
-    // if(inputIndex != 0){
-    //     std::cerr << "Error: Input tensor name is not " << kInputTensorName << "!" << std::endl;
-    //     return false;
-    // } 
-    // if(outputIndex != 1){
-    //     std::cerr << "Error: Output tensor name is not " << kOutputTensorName << "!" << std::endl;
-    //     return false;
-    // }
+    const int inputIndex = engine->getBindingIndex(kInputTensorName);
+    const int outputIndex = engine->getBindingIndex(kOutputTensorName);
+    if(inputIndex != 0){
+        std::cerr << "Error: Input tensor name is not " << kInputTensorName << "!" << std::endl;
+        return false;
+    } 
+    if(outputIndex != 1){
+        std::cerr << "Error: Output tensor name is not " << kOutputTensorName << "!" << std::endl;
+        return false;
+    }
 
     m_kBatchSize = engine->getMaxBatchSize();
-    auto inputDims = engine->getBindingDimensions(0);
+    auto inputDims = engine->getBindingDimensions(inputIndex);
     m_channel = inputDims.d[0];
     m_kInputH = inputDims.d[1];
     m_kInputW = inputDims.d[2];
-
+    std::cout << "m_kBatchSize: " << m_kBatchSize << "m_channel: " << m_channel << "m_kInputH: " << m_kInputH << "m_kInputW: " << m_kInputW << std::endl;
     CUDA_CHECK(cudaMalloc((void**)&device_buffers[0], m_kBatchSize * m_channel * m_kInputH * m_kInputW * sizeof(float)));
     CUDA_CHECK(cudaMalloc((void**)&device_buffers[1], m_kBatchSize * kOutputSize * sizeof(float)));
 
@@ -129,12 +129,12 @@ void YOLOV8ModelManager::infer(std::vector<cv::Mat> img_batch, std::vector<std::
 
     // infer on the batch asynchronously, and DMA output back to host
     //auto start = std::chrono::system_clock::now();
-    void* bindings[] = { device_buffers[0], device_buffers[1] };
-    if (!context->enqueueV2(bindings, stream, nullptr)) {
-        std::cerr << "Failed to enqueue inference." << std::endl;
-        return ;
-    }
-    //context->enqueue(m_kBatchSize, (void **)device_buffers, stream, nullptr);
+    // void* bindings[] = { device_buffers[0], device_buffers[1] };
+    // if (!context->enqueueV2(bindings, stream, nullptr)) {
+    //     std::cerr << "Failed to enqueue inference." << std::endl;
+    //     return ;
+    // }
+    context->enqueue(m_kBatchSize, (void **)device_buffers, stream, nullptr);
 
     if (m_kBatchSize > 1) {
         CUDA_CHECK(cudaMemcpyAsync(output_buffer_host, device_buffers[1], m_kBatchSize * kOutputSize * sizeof(float), cudaMemcpyDeviceToHost, stream));

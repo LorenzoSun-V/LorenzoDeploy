@@ -1,8 +1,8 @@
 /*
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-21 13:09:55
- * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-07-02 15:45:26
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2024-09-03 16:56:29
  * @Description: 
  */
 #include <string>
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
         cv::imwrite(imagename, batchframes[i]);
     }
 
-    DestoryDeepmodeInstance(pDNNInstance);	
+    DestoryDeepmodeInstance(&pDNNInstance);	
     double total_time = t_detect_end - t_detect_start;
     fprintf(stdout, "Total detection time %.02lfms\n", total_time);
     

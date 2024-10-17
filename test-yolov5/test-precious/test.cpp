@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
         std::cout << "文件存储地址: " << newFileOutPath << std::endl;
         writeDetectionResults(detResult, newFileOutPath);
     }
-    DestoryDeepmodeInstance(pDNNInstance);           
+    DestoryDeepmodeInstance(&pDNNInstance);           
     std::cout << "Finish !"<<endl;
     return 0;
 }

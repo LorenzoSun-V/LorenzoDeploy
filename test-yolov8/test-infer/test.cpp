@@ -1,8 +1,8 @@
 /*
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-21 13:09:55
- * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-07-17 10:33:23
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2024-09-03 16:56:35
  * @Description: 
  */
 #include <string>
@@ -24,7 +24,7 @@ std::string int2string(int x)
 int main(int argc, char* argv[])
 {
     if(argc < 2) {
-          std::cout<<"example: ./binary .bin imagedir"<<std::endl;
+          std::cout<<"example: ./binary imagedir .bin"<<std::endl;
           exit(-1);
     }
 
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
         index++;
       }
 
-    DestoryDeepmodeInstance(pDNNInstance);	  
+    DestoryDeepmodeInstance(&pDNNInstance);	  
     std::cout << "Total detection time: " << total_time << "ms" << std::endl;
     std::cout << "Average fps: " << frame_num / total_time * 1000 << std::endl;         
     std::cout << "Finish !"<<std::endl;

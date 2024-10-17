@@ -1,3 +1,9 @@
+/*
+ * @FilePath: /bt_alg_api/test-yolov5/test-batchinfer/test.cpp
+ * @Copyright: 无锡宝通智能科技股份有限公司
+ * @Author: jiajunjie@boton-tech.com
+ * @LastEditTime: 2024-09-03 16:49:52
+ */
 #include <string>
 #include <vector>
 #include <iostream>
@@ -66,7 +72,7 @@ int main(int argc, char* argv[])
         cv::imwrite(imagename, batchframes[i] );
     }
     double total_time = t_detect_end - t_detect_start;
-    DestoryDeepmodeInstance(pDNNInstance);	  
+    DestoryDeepmodeInstance(&pDNNInstance);	  
     fprintf(stdout, "Total detection time %.02lfms\n", total_time);
     std::cout << "Average fps: " << 1000 /(total_time / frame_num) << std::endl;             
     std::cout << "Finish !"<<std::endl;

@@ -1,3 +1,9 @@
+/*
+ * @FilePath: /bt_alg_api/test-yolov8/test-rtspstream/test.cpp
+ * @Copyright: 无锡宝通智能科技股份有限公司
+ * @Author: jiajunjie@boton-tech.com
+ * @LastEditTime: 2024-09-03 16:57:09
+ */
 #include <iostream>
 #include <vector>
 #include <string>
@@ -88,8 +94,8 @@ int main(int argc, char* argv[])
 #endif      
 
     }
-    DestoryRtspStreamDecoderInstance( pVideostreamInstance);
-    DestoryDeepmodeInstance(pDNNInstance);           
+    DestoryRtspStreamDecoderInstance(&pVideostreamInstance);
+    DestoryDeepmodeInstance(&pDNNInstance);           
     std::cout << "Finish !"<<endl;
     return 0;
 }

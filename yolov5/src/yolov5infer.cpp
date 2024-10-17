@@ -1,9 +1,9 @@
 /*
- * @FilePath: /bt_zs_4x_api/yolov5/src/yolov5infer.cpp
+ * @FilePath: /bt_alg_api/yolov5/src/yolov5infer.cpp
  * @Description: yolov5模型推理接口
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-07-04 11:47:12
+ * @LastEditTime: 2024-09-03 17:01:01
  */
 #include "yolov5infer.h"
 #include "yolov5.h"
@@ -108,9 +108,9 @@ ENUM_ERROR_CODE BatchInferenceGetDetectResult(void* pDeepInstance, std::vector<c
 }  
 
   
-ENUM_ERROR_CODE DestoryDeepmodeInstance( void *pDeepInstance)
+ENUM_ERROR_CODE DestoryDeepmodeInstance( void **pDeepInstance)
 {
-    YOLOV5DetectModelInstance* _instance = static_cast<YOLOV5DetectModelInstance*>(pDeepInstance);  	 
+    YOLOV5DetectModelInstance* _instance = static_cast<YOLOV5DetectModelInstance*>(*pDeepInstance);  	 
 	    if (!_instance || !_instance->_param->bParamIsOk) {
 	    cout << "DestoryDeepmodeInstance pDeepInstance is NULL" << endl;
 	    return ERR_INPUT_INSTANCE_INVALID;

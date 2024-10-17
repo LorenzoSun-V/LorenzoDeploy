@@ -1,14 +1,9 @@
-/**
-* @file    test.cpp
-*
-* @brief     串口接口单batch测试代码
-*
-* @copyright 无锡宝通智能科技股份有限公司
-*
-* @author  图像算法组-贾俊杰
-*
-* All Rights Reserved.
-*/
+/*
+ * @FilePath: /bt_alg_api/test-yolov5/test-infer/test.cpp
+ * @Copyright: 无锡宝通智能科技股份有限公司
+ * @Author: jiajunjie@boton-tech.com
+ * @LastEditTime: 2024-09-03 16:50:13
+ */
 #include <string>
 #include <vector>
 #include <iostream>
@@ -80,7 +75,7 @@ int main(int argc, char* argv[])
         index++;
       }
 
-    DestoryDeepmodeInstance(pDNNInstance);	      
+    DestoryDeepmodeInstance(&pDNNInstance);	      
     std::cout << "Total detection time: " << total_time << "ms" <<"frame_num: "<<frame_num<< std::endl;
     std::cout << "Average fps: " << 1000 /(total_time / frame_num) << std::endl;     
     std::cout << "Finish !"<<std::endl;

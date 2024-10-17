@@ -1,9 +1,9 @@
 /*
- * @FilePath: /bt_zs_4x_api/yolov8/src/yolov8infer.h
+ * @FilePath: /bt_alg_api/yolov8/src/yolov8infer.h
  * @Description: yolov8模型推理接口
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-06-28 17:06:40
+ * @LastEditTime: 2024-09-03 16:07:40
  */
 
 #pragma once
@@ -70,7 +70,7 @@ extern "C"
     */
 
     ENUM_ERROR_CODE DestoryDeepmodeInstance(
-        void* pDeepInstance
+        void** pDeepInstance
     );
                
 }

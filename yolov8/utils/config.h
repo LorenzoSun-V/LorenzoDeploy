@@ -1,11 +1,12 @@
+
 #define USE_FP16
 //#define USE_FP32
 //#define USE_INT8
 
 const static char *kInputTensorName = "images";
-const static char *kOutputTensorName = "output0";
-const static int kNumClass = 2;
-const static int kBatchSize = 1;
+const static char *kOutputTensorName = "output";
+const static int kNumClass = 4;
+const static int kBatchSize = 4;
 const static int kGpuId = 0;
 const static int kInputH = 640;
 const static int kInputW = 640;
