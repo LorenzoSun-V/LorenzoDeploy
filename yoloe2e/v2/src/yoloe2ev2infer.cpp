@@ -81,7 +81,26 @@ ENUM_ERROR_CODE InferenceGetDetectResult(void* pDeepInstance, cv::Mat frame, std
     }
     return ENUM_OK;
 }
-  
+
+ENUM_ERROR_CODE BatchInferenceGetDetectResult(void* pDeepInstance, std::vector<cv::Mat> vframes, std::vector<std::vector<DetBox>> &batchDetBoxs)
+{
+    YOLOE2Ev2ModelInstance* _instance = static_cast<YOLOE2Ev2ModelInstance*>(pDeepInstance); 
+    if (!_instance || !_instance->_param->bParamIsOk) {
+	    cout << "InferenceGetDetectResult pDeepInstance is nullptr " << endl;
+	    return ERR_INPUT_INSTANCE_INVALID;
+    }
+    
+    if (vframes.size()==0)
+    {
+        std::cout <<  "Failed to read frame." << std::endl;
+        return ERR_INPUT_IMAGE_EMPTY;
+    }
+    if (!_instance->_param->yoloe2ev2model.batchinference(vframes, batchDetBoxs)){
+        return ERR_DETECT_OBJECT_EMPTY;
+    }
+    return ENUM_OK;
+}
+
 ENUM_ERROR_CODE DestoryDeepmodeInstance(void **pDeepInstance)
 {
     YOLOE2Ev2ModelInstance* _instance = static_cast<YOLOE2Ev2ModelInstance*>(*pDeepInstance); 	 

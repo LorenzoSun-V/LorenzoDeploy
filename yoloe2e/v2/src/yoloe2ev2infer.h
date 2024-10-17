@@ -33,8 +33,22 @@ extern "C"
         void* pDeepInstance,
         cv::Mat frame,
         std::vector<DetBox> &detBoxs
-    );   
-          
+    );
+
+   /*
+    * @brief 销毁句柄
+    *
+    * @param instance               需要销毁的句柄
+    * @param vframes                输入批量检测图片  
+    *
+    * @return  ENUM_ERROR_CODE      返回0表示成功
+    */
+    ENUM_ERROR_CODE BatchInferenceGetDetectResult(
+        void* pDeepInstance, 
+        std::vector<cv::Mat> vframes, 
+        std::vector<std::vector<DetBox>> &batchDetBoxs
+    );
+      
    /*
     * @brief 销毁句柄
     *

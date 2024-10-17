@@ -1,31 +1,9 @@
-#include <stdio.h>
-#include <string>
-#include <iostream>
-#include <memory>
-#include <utility>
-#include <fstream>
-#include <sstream>
-#include <sys/time.h>
-#include <iterator>
-
 #include "yoloe2ev2.h"
-#include "logging.h"
-#include "cuda_runtime_api.h"
-#include "NvInfer.h"
-#include "NvInferPlugin.h"
-#include <npp.h>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/videoio/videoio.hpp>
-
-using namespace nvinfer1;
-using namespace std;
-using namespace cv;
 
 YOLOE2Ev2ModelManager::YOLOE2Ev2ModelManager()
-    : runtime(nullptr), engine(nullptr), context(nullptr), stream(0){
+    : m_kBatchSize(1), m_channel(3), m_kInputH(640), m_kInputW(640),
+    m_maxObject(300),runtime(nullptr), engine(nullptr), context(nullptr), stream(0){
 
     }
 
@@ -52,6 +30,23 @@ YOLOE2Ev2ModelManager::~YOLOE2Ev2ModelManager() {
             buffers[i] = nullptr;
         }
     }
+    // 释放主机内存
+    if (host_output0) {
+        delete[] host_output0;
+        host_output0=NULL;
+    } 
+    if(host_output1){
+        delete[] host_output1;
+        host_output1=NULL;
+    }
+    if(host_output2){
+        delete[] host_output2;
+        host_output2=NULL;
+    }
+    if(host_output3){
+        delete[] host_output3;
+        host_output3=NULL;
+    }
 }
 
 bool YOLOE2Ev2ModelManager::loadModel(const std::string engine_name){
@@ -69,16 +64,29 @@ bool YOLOE2Ev2ModelManager::loadModel(const std::string engine_name){
     m_kInputW = inputDims.d[3];
     std::cout << "m_kBatchSize: " << m_kBatchSize << " m_channel: " << m_channel << " m_kInputH: " << m_kInputH << " m_kInputW: " << m_kInputW << std::endl;
 
-    input.resize(m_kInputH * m_kInputW * 3);
-    if (cudaMalloc(&buffers[0], m_kInputH * m_kInputW * 3 * sizeof(float)) != cudaSuccess) {
+    input.resize(m_kBatchSize*m_kInputH * m_kInputW * 3);//保存图像数据
+    if (cudaMalloc(&buffers[0], m_kBatchSize * m_kInputH * m_kInputW * 3 * sizeof(float)) != cudaSuccess) {
         std::cerr << "Failed to allocate device memory for input buffer." << std::endl;
         return false;
     }
-    // cudaMalloc(&buffers[0], m_kInputH * m_kInputW * 3 * sizeof(float));  //<- input
-    cudaMalloc(&buffers[1], 1 * sizeof(int)); //<- num_detections
-	cudaMalloc(&buffers[2], 1 * 200 * 4 * sizeof(float)); //<- nmsed_boxes
-	cudaMalloc(&buffers[3], 1 * 200 * sizeof(float)); //<- nmsed_scores
-	cudaMalloc(&buffers[4], 1 * 200 * sizeof(float)); //<- nmsed_classes
+    
+    const int outputIndex = engine->getBindingIndex("nmsed_classes");//outputIndex=4
+    auto outputDims = engine->getBindingDimensions(outputIndex);
+    std::cout << "outputDims: " <<outputDims.d[1]<< std::endl;
+    
+    int maxObjectNumbers = outputDims.d[1];//获得目标框数量
+    if(maxObjectNumbers >= 20) m_maxObject = maxObjectNumbers; //根据网络设置最大检测对象数量分配空间
+
+    cudaMalloc(&buffers[1], m_kBatchSize * sizeof(int)); //<- num_detections
+	cudaMalloc(&buffers[2], m_kBatchSize * m_maxObject * 4 * sizeof(float)); //<- nmsed_boxes
+	cudaMalloc(&buffers[3], m_kBatchSize * m_maxObject * sizeof(float)); //<- nmsed_scores
+	cudaMalloc(&buffers[4], m_kBatchSize * m_maxObject * sizeof(float)); //<- nmsed_classes
+
+    // 同步并从设备(GPU)内存中拷贝数据到主机(CPU)
+    host_output0 = new int[m_kBatchSize];  // 预测框的数量
+    host_output1 = new float[m_kBatchSize * m_maxObject * 4];  // 预测框坐标
+    host_output2 = new float[m_kBatchSize * m_maxObject];  // 预测框置信度
+    host_output3 = new float[m_kBatchSize * m_maxObject];  // 预测框类别
 
     return true;
 }
@@ -172,29 +180,110 @@ void YOLOE2Ev2ModelManager::rescale_box(std::vector<DetBox>& pred_box, std::vect
     }
 }
 
-bool YOLOE2Ev2ModelManager::inference(cv::Mat frame, std::vector<DetBox>& detBoxs){
+void YOLOE2Ev2ModelManager::doInference()
+{
+    context->enqueueV2(buffers, stream, nullptr);
+    cudaMemcpyAsync(host_output0, buffers[1], m_kBatchSize * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(host_output1, buffers[2], m_kBatchSize * m_maxObject * 4 * sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpyAsync(host_output2, buffers[3], m_kBatchSize * m_maxObject * sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpyAsync(host_output3, buffers[4], m_kBatchSize * m_maxObject * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaStreamSynchronize(stream);
+}
+
+bool YOLOE2Ev2ModelManager::inference(cv::Mat frame, std::vector<DetBox>& detBoxs)
+{
     preprocess(frame, input);
     cudaMemcpyAsync(buffers[0], input.data(), m_kInputH * m_kInputW * 3 * sizeof(float), cudaMemcpyHostToDevice);
-    context->enqueueV2(buffers, stream, nullptr);
-    cudaMemcpyAsync(output0, buffers[1], 1 * sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpyAsync(output1, buffers[2], 1 * 200 * 4 * sizeof(float), cudaMemcpyDeviceToHost);
-	cudaMemcpyAsync(output2, buffers[3], 1 * 200 * sizeof(float), cudaMemcpyDeviceToHost);
-	cudaMemcpyAsync(output3, buffers[4], 1 * 200 * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaStreamSynchronize(stream);
-    
+    doInference();
+    detBoxs.clear();//清空detBoxs，确保其为空
     std::vector<DetBox> pred_box;
-  
-    for (int i = 0; i < output0[0]; i++){
+    for (int i = 0; i < host_output0[0]; i++){
         DetBox box;
-	    box.x = (output1[i * 4 + 2] + output1[i * 4]) / 2.0;
-		box.y = (output1[i * 4 + 3] + output1[i * 4 + 1]) / 2.0;
-		box.w = output1[i * 4 + 2] - output1[i * 4];
-		box.h = output1[i * 4 + 3] - output1[i * 4 + 1];
-		box.confidence = output2[i];
-		box.classID = (int)output3[i];
+	    box.x = (host_output1[i * 4 + 2] + host_output1[i * 4]) / 2.0;
+		box.y = (host_output1[i * 4 + 3] + host_output1[i * 4 + 1]) / 2.0;
+		box.w = host_output1[i * 4 + 2] - host_output1[i * 4];
+		box.h = host_output1[i * 4 + 3] - host_output1[i * 4 + 1];
+		box.confidence = host_output2[i];
+		box.classID = (int)host_output3[i];
         pred_box.push_back(box);
     }
 
     rescale_box(pred_box, detBoxs, frame.cols, frame.rows);
+    return true;
+}
+
+bool YOLOE2Ev2ModelManager::batchinference(std::vector<cv::Mat> frames, std::vector<std::vector<DetBox>>& batchBoxes) {
+    if (frames.empty()) {
+        std::cerr << "Input batch is empty." << std::endl;
+        return false;
+    }
+
+    // 清空 batchBoxes，确保其为空
+    batchBoxes.clear();
+
+    // 按批次处理图像
+    for (size_t i = 0; i < frames.size(); i += m_kBatchSize) {
+        // 确定实际的批次大小，处理最后一个可能不足的批次
+        size_t batchSize = std::min(static_cast<size_t>(m_kBatchSize), frames.size() - i);
+
+        // 存储批次的输入数据，确保在异步拷贝期间数据有效
+        std::vector<std::vector<float>> inputs(batchSize);
+        for (size_t j = 0; j < batchSize; j++) {
+            // 调整 inputs[j] 的大小以容纳预处理后的图像数据
+            inputs[j].resize(m_kInputH * m_kInputW * 3);
+
+            // 预处理图像
+            preprocess(frames[i + j], inputs[j]);
+
+            // 将预处理后的数据复制到设备输入缓冲区
+            cudaMemcpyAsync(static_cast<float*>(buffers[0]) + j * m_kInputH * m_kInputW * 3, inputs[j].data(),
+                m_kInputH * m_kInputW * 3 * sizeof(float),cudaMemcpyHostToDevice,stream);
+        }
+
+        // 运行推理
+        context->enqueueV2(buffers, stream, nullptr);
+
+        // 从设备拷贝输出到主机
+        cudaMemcpyAsync(host_output0, buffers[1], batchSize * sizeof(int), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(host_output1, buffers[2], batchSize * m_maxObject * 4 * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(host_output2, buffers[3], batchSize * m_maxObject * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(host_output3, buffers[4], batchSize * m_maxObject * sizeof(float), cudaMemcpyDeviceToHost, stream);
+
+        // 同步流，确保所有操作完成
+        cudaStreamSynchronize(stream);
+
+        // 解析每张图像的输出
+        for (size_t j = 0; j < batchSize; j++) {
+            std::vector<DetBox> detBoxs;  // 当前图像的检测框
+            std::vector<DetBox> pred_box; // 预测框，待回归到原始尺寸
+
+            int num_detections = host_output0[j];
+            //std::cout << "Image " << i + j << " num_detections: " << num_detections << std::endl;
+
+            // 遍历当前图像的所有检测结果
+            for (int index = 0; index < num_detections; index++) {
+                // 计算当前检测结果在输出数组中的索引
+                size_t idx = j * m_maxObject + index;  // 假设每张图片的最大检测数量为 m_maxObject
+
+                // 提取检测结果数据
+                DetBox box;
+                box.x = (host_output1[idx * 4 + 2] + host_output1[idx * 4]) / 2.0f;
+                box.y = (host_output1[idx * 4 + 3] + host_output1[idx * 4 + 1]) / 2.0f;
+                box.w = host_output1[idx * 4 + 2] - host_output1[idx * 4];
+                box.h = host_output1[idx * 4 + 3] - host_output1[idx * 4 + 1];
+                box.confidence = host_output2[idx];
+                box.classID = static_cast<int>(host_output3[idx]);
+
+                pred_box.push_back(box);
+            }
+
+            // 将预测框回归到原始图像尺寸
+            rescale_box(pred_box, detBoxs, frames[i + j].cols, frames[i + j].rows);
+
+            // 将当前图像的检测结果添加到 batchBoxes
+            batchBoxes.push_back(detBoxs);
+        }
+    }
+
     return true;
 }
