@@ -1,6 +1,6 @@
 # Ignore directories
 **/image/
-**/video/
+# **/video/
 **/**/build/
 **/**/weights/
 fd/cfg/*
