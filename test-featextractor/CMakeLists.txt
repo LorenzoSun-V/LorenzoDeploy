@@ -1,14 +1,20 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(featextractor)
+project(modetest)
 
 set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../)
 
-#common 
 set(COMMON_INCLUDE ${ROOT_PATH}/include/ )
-set(CMAKE_CUDA_ARCHITECTURES 75 86 89)
-option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
-set(CMAKE_CXX_STANDARD 11)
+
+# deepmode
+set(INFER_INCLUDE ${ROOT_PATH}/featextractor/src/ ) 
+set(INFER_LIBPATH ${ROOT_PATH}/featextractor/build/src )
+set(INFER_LIBS featextractor)
+
+# utils
+set(UTILS_INCLUDE ${ROOT_PATH}/utils/src/ )
+set(UTILS_LIBPATH ${ROOT_PATH}/utils/build/src )
+set(UTILS_LIBS utils)
 
 # opencv
 MESSAGE(STATUS "operation system is ${CMAKE_SYSTEM}") 
@@ -21,32 +27,21 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
     set(OPENCV_LIBPATH ${ROOT_PATH}/3rdlibs/opencv4.5.2_x86_x64/lib/ ) 
 endif()
 set(OPENCV_LIBS opencv_highgui opencv_core opencv_imgproc opencv_imgcodecs opencv_videoio)
-# cuda
-set(CUDA_INCLUDE /usr/local/cuda/include)
-set(CUDA_LIBPATH /usr/local/cuda/lib64)
-set(CUDA_LIBS cudart)
-# trt 
-set(TRT_INCLUDE ${TRT_PATH}/include)
-set(TRT_LIBPATH ${TRT_PATH}/lib)
-set(TRT_LIBS nvinfer nvonnxparser)
 
 # compile flags
-SET(CMAKE_CXX_FLAGS "-W -Wall -Wno-sign-compare -fPIC -std=c++11 -O3")
+SET(CMAKE_CXX_FLAGS "-std=c++17  -pthread -Wall -Ofast -Wfatal-errors -D_MWAITXINTRIN_H_INCLUDED -O3")
 
 # include path
 include_directories(${COMMON_INCLUDE})
+include_directories(${INFER_INCLUDE})
 include_directories(${OPENCV_INCLUDE})
-include_directories(${CUDA_INCLUDE})
-include_directories(${TRT_INCLUDE})
-include_directories(${PROJECT_SOURCE_DIR}/utils/)
+include_directories(${UTILS_INCLUDE})
 
 # library path
 link_directories(${OPENCV_LIBPATH})
-link_directories(${CUDA_LIBPATH})
-link_directories(${TRT_LIBPATH})
-
-# source 
-file(GLOB_RECURSE SRCS ${PROJECT_SOURCE_DIR}/utils/*.cpp)
+link_directories(${INFER_LIBPATH})
+link_directories(${UTILS_LIBPATH})
 
 #subdirectory
-ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY(test-infer)
+ADD_SUBDIRECTORY(test-batchinfer)

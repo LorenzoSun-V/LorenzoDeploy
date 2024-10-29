@@ -40,7 +40,7 @@ pip install ultralytics
     * outputmodel: output onnx_postprocess model
     * numcls: number of classes 
 
-* YOLOv8/YOLOv9
+* YOLOv8/YOLOv9/YOLO11
 
     Use `yolo` to get onnx model.
     ```
