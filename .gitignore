@@ -1,7 +1,9 @@
 # Ignore directories
 **/image/
 # **/video/
-**/**/build/
+build/
+**/build/
+'build'$'\r'
 **/**/weights/
 fd/cfg/*
 weights/*

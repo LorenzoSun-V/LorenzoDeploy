@@ -1,0 +1,54 @@
+Server:
+  Port: 1777
+Client:
+  Address: 192.168.1.1
+  port: 8080
+Sericom:
+  devname: ttyTH1
+HKCamera:
+  Address1: 192.168.137.65
+  Address2: 192.168.137.64
+JGCamera:
+  Address1: 192.168.137.21
+  Address2: 192.168.137.22
+NTP:
+  Address: 192.168.137.200
+  Timezone: 8
+InPutDevices:
+  devices: 4
+Model:
+  modelname: yolov5.engine
+  inputsize: 640
+  classesnum: 3
+  cnntype: yolov5
+Platform:
+  Platform: 1
+Version:
+  softversion: v0.1
+DetectArea1:
+  x0: 0
+  y0: 0
+  x1: 200
+  y2: 200
+DetectArea2:
+  x0: 0
+  y0: 0
+  x1: 200
+  y2: 200
+DetectArea3:
+  x0: 0
+  y0: 0
+  x1: 200
+  y2: 200
+DetectArea4:
+  x0: 0
+  y0: 0
+  x1: 200
+  y2: 200
+AlgPara:
+  MSTempTh: 8
+  SLTempTh: 30
+  HWSLRateTh: 85
+  HWMSRateTh: 80
+  KJGMSRateTh: 85
+  KJGSLRateTh: 85

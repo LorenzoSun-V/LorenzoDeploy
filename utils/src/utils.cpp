@@ -165,11 +165,10 @@ void ConvertStringToHexArray(char *pDest, const char *pSrc, int nSize)
 }
 
 
-
 //综合逻辑判断，计算目标框与检测区域的百分比，大于阈值返回true 
 bool CalculateAreaRatio(const cv::Rect detbox, const std::vector<cv::Point> converted_points, int threshold)
 {    
-    if(converted_points.empty() ){
+    if(converted_points.empty() ) {
         std::cout <<"CalculateAreaRatio "<<std::endl;
         return false;
     }
@@ -178,8 +177,8 @@ bool CalculateAreaRatio(const cv::Rect detbox, const std::vector<cv::Point> conv
     std::vector<cv::Point> box_point;
     box_point.push_back(detbox.tl());
     box_point.push_back(cv::Point(detbox.br().x, detbox.tl().y));
-    box_point.push_back(detbox.br());
     box_point.push_back(cv::Point(detbox.tl().x, detbox.br().y));
+    box_point.push_back(detbox.br());
     if(box_point.empty() )
     {
         std::cout <<"box_point "<<std::endl;
@@ -208,24 +207,21 @@ bool CalculateAreaRatio(const cv::Rect detbox, const std::vector<cv::Point> conv
 }
 
 //输入模型检测的图像和检测区域的坐标点，检测区域的长宽，将检测区域的坐标转为与输入原始图像相同尺寸的坐标
-bool NormalizedPointsToImageSize(cv::Mat detect_img, std::vector<cv::Point> area_points, int area_width, int area_height, std::vector<cv::Point> &converted_points)
+bool NormalizedPointsToImageSize( int image_width, int image_height, std::vector<cv::Point> area_points, int area_width, int area_height, std::vector<cv::Point> &converted_points)
 {
-    if(detect_img.empty() ){
-        std::cout <<"input detect image is empty "<<std::endl;
+    if(image_width < 320 || image_height < 240){
+        printf("Input image width(%d) height(%d) must more than 320,240", image_width, image_height);
         return false;
-    }
+    }    
 
     if(area_width < 320 || area_height < 240){
         printf("Input area point width(%d) height(%d) must more than 320,240", area_width, area_height);
         return false;
     }    
 
-    int img_width = detect_img.cols;
-    int img_height = detect_img.rows;
-
     //配置原始图像缩放因子
-    float scale_w = (float)area_width / img_width;
-    float scale_h = (float)area_height / img_height;
+    float scale_w = (float)area_width / image_width;
+    float scale_h = (float)area_height / image_height;
 
     for(auto point: area_points)
     {

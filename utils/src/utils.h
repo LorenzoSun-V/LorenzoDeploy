@@ -2,7 +2,7 @@
  * @Description: 集成视觉相关小功能模块
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-06-16 13:59:02
+ * @LastEditTime: 2024-09-05 18:00:32
  */
 #pragma once
 
@@ -87,7 +87,8 @@ extern "C"
      * @brief 输入模型检测的图像和检测区域的坐标点，检测区域的长宽，
      * @brief 将检测区域的坐标转为与输入原始图像相同尺寸的坐标
      * 
-	 * @param   detect_img          输入检测图像的Mat图像
+	 * @param   image_width         输入检测图像的宽
+     * @param   image_height        输入检测图像的高
      * @param   area_points         输入检测区域绘制的坐标点
      * @param   area_width          输入检测区域的图像宽
      * @param   area_height         输入检测区域的图像高
@@ -96,7 +97,8 @@ extern "C"
      * @return  bool                返回true成功
      */ 
     bool NormalizedPointsToImageSize(
-        cv::Mat detect_img, 
+        int image_width, 
+        int image_height, 
         std::vector<cv::Point> area_points, 
         int area_width, 
         int area_height, 
@@ -107,7 +109,7 @@ extern "C"
      * @brief 计算目标框与检测区域的百分比，判断是否大于阈值
      * 
 	 * @param   detbox              输入识别物体目标的矩形坐标
-     * @param   converted_points    输入映射后检测区域的坐标
+     * @param   converted_points    输入映射后检测区域的坐标,需要输入多边形的每个点坐标
      * @param   threshold           输入过滤交集的百分比，输入（0~100）
      * 
      * @return  bool                返回true成功

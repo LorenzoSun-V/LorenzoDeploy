@@ -1,3 +1,11 @@
+/*
+ * @FilePath: /jack/bt_alg_api/include/common.h
+ * @Description:错误码定义
+ * @Copyright: 无锡宝通智能科技股份有限公司
+ * @Author: jiajunjie@boton-tech.com
+ * @LastEditTime: 2024-11-19 15:00:20
+ */
+
 #pragma once
 
 #include <string>
@@ -12,11 +20,13 @@ struct DetBox {
     float x, y, h, w;//目标框左上角坐标x,y和框的长宽h,w
     float confidence;//预测精度
     int classID;//类别ID
+    float angle;
     DetBox() {
         x = 0.0;
         y = 0.0;
         h = 0.0;
         w = 0.0;
+        angle = 0.0;
         confidence = 0.0;
         classID = -1;
     }
@@ -24,7 +34,11 @@ struct DetBox {
         return x == other.x && y == other.y && h == other.h && w == other.w &&
                confidence == other.confidence && classID == other.classID;
     }
-};     
+    
+    void initBox(float x1, float y1, float x2, float y2) {
+        x=x1;y=y1;w=x2-x1;h=y2-y1; 
+    }
+};   
 
 typedef enum {
     /// 通用错误码定义:范围0x0000-0x00FF
