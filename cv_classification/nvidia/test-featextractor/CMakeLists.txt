@@ -2,13 +2,13 @@ cmake_minimum_required(VERSION 3.0)
 
 project(modetest)
 
-set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../)
+set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 
 set(COMMON_INCLUDE ${ROOT_PATH}/include/ )
 
 # deepmode
-set(INFER_INCLUDE ${ROOT_PATH}/featextractor/src/ ) 
-set(INFER_LIBPATH ${ROOT_PATH}/featextractor/build/src )
+set(INFER_INCLUDE ${ROOT_PATH}/cv_classification/nvidia/featextractor/src) 
+set(INFER_LIBPATH ${ROOT_PATH}cv_classification/nvidia/featextractor/build/src)
 set(INFER_LIBS featextractor)
 
 # utils
@@ -21,8 +21,9 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
     set(OPENCV_INCLUDE ${ROOT_PATH}/3rdlibs/opencv4.8.0_gst162_rk_aarch64/include/ )
     set(OPENCV_LIBPATH ${ROOT_PATH}/3rdlibs/opencv4.8.0_gst162_rk_aarch64/lib/ ) 
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    set(OPENCV_INCLUDE ${ROOT_PATH}/3rdlibs/opencv4.9_x86_x64/include/ )
-    set(OPENCV_LIBPATH ${ROOT_PATH}/3rdlibs/opencv4.9_x86_x64/lib/ ) 
+MESSAGE(STATUS "opencv linux") 
+set(OPENCV_INCLUDE ${ROOT_PATH}/3rdlibs/opencv4.5.2_x86_x64/include/ )
+set(OPENCV_LIBPATH ${ROOT_PATH}/3rdlibs/opencv4.5.2_x86_x64/lib/ ) 
 endif()
 set(OPENCV_LIBS opencv_highgui opencv_core opencv_imgproc opencv_imgcodecs opencv_videoio)
 

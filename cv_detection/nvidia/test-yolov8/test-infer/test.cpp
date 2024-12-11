@@ -1,8 +1,8 @@
 /*
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-21 13:09:55
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2024-09-03 16:56:35
+ * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
+ * @LastEditTime: 2024-11-20 09:22:03
  * @Description: 
  */
 #include <string>
@@ -24,13 +24,13 @@ std::string int2string(int x)
 int main(int argc, char* argv[])
 {
     if(argc < 2) {
-          std::cout<<"example: ./binary imagedir .bin"<<std::endl;
-          exit(-1);
+        std::cout<<"example: ./binary [.bin/.engine] imagedir"<<std::endl;
+        exit(-1);
     }
 
-    const char* pimagedir = argv[2];
     const char* pWeightsfile = argv[1];
-          
+    const char* pimagedir = argv[2];
+    
     if(pimagedir == NULL || pWeightsfile == NULL)
     {
         std::cout<<"input param error!"<<std::endl;
