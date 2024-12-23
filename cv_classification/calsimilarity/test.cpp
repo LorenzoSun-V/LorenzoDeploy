@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-07-04 14:10:35
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-12-10 11:43:20
+ * @LastEditTime: 2024-12-12 10:28:27
  * @Description: 
  */
 #include <iostream>
@@ -22,6 +22,7 @@ namespace fs = std::filesystem;
 
 struct input_search_param {
     int feature_id;
+    std::string feature_name;
     std::vector<float> feature_value;
 };
 
@@ -46,8 +47,47 @@ float calculCosineSimilar(const std::vector<float>& feature1, const std::vector<
     return dot_product / (sqrt(norm_a) * sqrt(norm_b));
 }
 
-std::vector<int> searchTopkEuclideanDistance(const std::vector<float>& input_feat, const std::vector<input_search_param>& search_lib, int topk = 1) {
-    // 确保输入特征向量和搜索库中的特征向量非空且维度一致
+// std::vector<int> searchTopkEuclideanDistance(const std::vector<float>& input_feat, const std::vector<input_search_param>& search_lib, int topk = 1) {
+//     // 确保输入特征向量和搜索库中的特征向量非空且维度一致
+//     if (input_feat.empty() || search_lib.empty() || search_lib[0].feature_value.size() != input_feat.size()) {
+//         throw std::invalid_argument("Invalid input dimensions.");
+//     }
+
+//     int n = input_feat.size();
+//     int m = search_lib.size();
+
+//     Eigen::VectorXf input_vec = Eigen::Map<const Eigen::VectorXf>(input_feat.data(), n);
+
+//     // 创建一个字典来存储特征的ID和对应的欧氏距离
+//     std::vector<std::pair<int, float>> distances;
+
+//     // 遍历搜索库中的特征向量，计算欧氏距离
+//     for (const auto& item : search_lib) {
+//         Eigen::VectorXf lib_vec = Eigen::Map<const Eigen::VectorXf>(item.feature_value.data(), n);
+//         float dist = (input_vec - lib_vec).squaredNorm();
+//         distances.push_back(std::make_pair(item.feature_id, dist));
+//     }
+
+//     // 对字典中的距离进行排序，按从小到大排序
+//     std::sort(distances.begin(), distances.end(), [](const std::pair<int, float>& a, const std::pair<int, float>& b) {
+//         return a.second < b.second;
+//     });
+
+//     // 取前topk个最小的距离对应的特征ID
+//     std::vector<int> result;
+//     for (int i = 0; i < topk; ++i) {
+//         result.push_back(distances[i].first);
+//     }
+
+//     return result;
+// }
+
+std::vector<std::pair<int, std::string>> searchTopkEuclideanDistance(
+    const std::vector<float>& input_feat,
+    const std::vector<input_search_param>& search_lib,
+    int topk = 1
+) {
+    // Ensure input feature vector and search library are non-empty and dimensions match
     if (input_feat.empty() || search_lib.empty() || search_lib[0].feature_value.size() != input_feat.size()) {
         throw std::invalid_argument("Invalid input dimensions.");
     }
@@ -57,25 +97,25 @@ std::vector<int> searchTopkEuclideanDistance(const std::vector<float>& input_fea
 
     Eigen::VectorXf input_vec = Eigen::Map<const Eigen::VectorXf>(input_feat.data(), n);
 
-    // 创建一个字典来存储特征的ID和对应的欧氏距离
-    std::vector<std::pair<int, float>> distances;
+    // Create a vector to store the feature ID, name, and corresponding Euclidean distance
+    std::vector<std::tuple<int, std::string, float>> distances;
 
-    // 遍历搜索库中的特征向量，计算欧氏距离
+    // Iterate over the feature vectors in the search library and calculate Euclidean distance
     for (const auto& item : search_lib) {
         Eigen::VectorXf lib_vec = Eigen::Map<const Eigen::VectorXf>(item.feature_value.data(), n);
         float dist = (input_vec - lib_vec).squaredNorm();
-        distances.push_back(std::make_pair(item.feature_id, dist));
+        distances.push_back(std::make_tuple(item.feature_id, item.feature_name, dist));
     }
 
-    // 对字典中的距离进行排序，按从小到大排序
-    std::sort(distances.begin(), distances.end(), [](const std::pair<int, float>& a, const std::pair<int, float>& b) {
-        return a.second < b.second;
+    // Sort the distances in ascending order
+    std::sort(distances.begin(), distances.end(), [](const std::tuple<int, std::string, float>& a, const std::tuple<int, std::string, float>& b) {
+        return std::get<2>(a) < std::get<2>(b);
     });
 
-    // 取前topk个最小的距离对应的特征ID
-    std::vector<int> result;
-    for (int i = 0; i < topk; ++i) {
-        result.push_back(distances[i].first);
+    // Extract the top-k results (ID and name)
+    std::vector<std::pair<int, std::string>> result;
+    for (int i = 0; i < std::min(topk, static_cast<int>(distances.size())); ++i) {
+        result.emplace_back(std::get<0>(distances[i]), std::get<1>(distances[i]));
     }
 
     return result;
@@ -229,7 +269,7 @@ std::vector<input_search_param> readSearchLibFromDirectory(const std::string& di
                 // 读取特征向量
                 std::vector<float> feature_value = readFeatureFromFile(file_path);
                 // 存储到 search_lib
-                search_lib.push_back({feature_id, feature_value});
+                search_lib.push_back({feature_id, file_name, feature_value});
             } else {
                 // 如果没有找到分隔符，可以选择记录错误或跳过该文件
                 std::cerr << "Invalid file name format: " << file_name << std::endl;
@@ -268,8 +308,8 @@ int main() {
     // };
 
     //! test3：提取的特征进行测试
-    std::string input_feat_path = "/lorenzo/deploy/LorenzoDeploy/cv_classification/nvidia/test-featextractor/build/test-infer/query_lib";
-    std::string search_lib_dir = "/lorenzo/deploy/LorenzoDeploy/cv_classification/nvidia/test-featextractor/build/test-infer/search_lib";
+    std::string input_feat_path = "/lorenzo/deploy/LorenzoDeploy/cv_classification/nvidia/test-featextractor/build/test-infer/res50_latest/query_lib";
+    std::string search_lib_dir = "/lorenzo/deploy/LorenzoDeploy/cv_classification/nvidia/test-featextractor/build/test-infer/res50_latest/search_lib";
 
     // 从文件中读取输入特征
     // std::vector<float> input_feat = readFeatureFromFile(input_feat_path);
@@ -293,12 +333,24 @@ int main() {
     }
 
     int topk = 1;
+    int total = 0;
+    int correct = 0;
     for (const auto& query : query_lib) {
         // 查找 top k 最相似的特征
-        std::vector<int> topk_ids = searchTopkEuclideanDistance(query.feature_value, search_lib, topk);
-
-        
+        auto results = searchTopkEuclideanDistance(query.feature_value, search_lib, topk);
+        std::pair<int, std::string> topk_result = results[0];
+        int topk_id = topk_result.first;
+        std::string topk_name = topk_result.second;
+        std::cout << "topk_id: " << topk_id << ", query_id: " << query.feature_id << std::endl;
+        if (topk_id == query.feature_id) {
+            correct++;
+        }
+        else{
+            std::cout << "topk_name: " << topk_name << ", query_name: " << query.feature_name << std::endl;
+        }
+        total++;
     }
+    std::cout << "Total: " << total << ", Correct: " << correct << std::endl;
 
     // 查找 top k 最相似的特征
     // int topk = 1;

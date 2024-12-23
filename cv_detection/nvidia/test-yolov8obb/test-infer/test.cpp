@@ -2,7 +2,7 @@
  * @FilePath: /jack/github/bt_alg_api/cv_detection/nvidia/test-yolov8obb/test-infer/test.cpp
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-12-06 15:54:35
+ * @LastEditTime: 2024-12-12 16:33:07
  * @Description: YOLOv8OBB 单batch处理代码
  */
 #include <string>

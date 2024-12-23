@@ -3,7 +3,7 @@
  * @Description:错误码定义
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-11-19 15:00:20
+ * @LastEditTime: 2024-12-12 13:30:34
  */
 
 #pragma once
@@ -17,16 +17,16 @@
 
 //模型结果存放数据结构
 struct DetBox {
-    float x, y, h, w;//目标框左上角坐标x,y和框的长宽h,w
+    float x, y, h, w;//目标框左上角坐标x1,y2和框的长宽h,w
     float confidence;//预测精度
     int classID;//类别ID
-    float angle;
+    float radian;//旋转框弧度
     DetBox() {
         x = 0.0;
         y = 0.0;
         h = 0.0;
         w = 0.0;
-        angle = 0.0;
+        radian = 0.0;
         confidence = 0.0;
         classID = -1;
     }
@@ -36,7 +36,10 @@ struct DetBox {
     }
     
     void initBox(float x1, float y1, float x2, float y2) {
-        x=x1;y=y1;w=x2-x1;h=y2-y1; 
+        x = (x1 > 0) ? x1 : 0.0f;
+        y = (y1 > 0) ? y1 : 0.0f;
+        w = (x2 > x) ? (x2 - x) : 0.0f;
+        h = (y2 > y) ? (y2 - y) : 0.0f;
     }
 };   
 

@@ -19,9 +19,9 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
     set(OPENCV_LIBPATH ${ROOT_PATH}/3rdlibs/opencv4.8.0_gst162_rk_aarch64/lib/ ) 
     set(OPENCV_LIBS opencv_highgui opencv_core opencv_imgproc opencv_imgcodecs opencv_videoio)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    set(OPENCV_INCLUDE ${ROOT_PATH}/3rdlibs/opencv4.5.2_x86_x64/include/ )
-    set(OPENCV_LIBPATH ${ROOT_PATH}/3rdlibs/opencv4.5.2_x86_x64/lib/ ) 
-    set(OPENCV_LIBS opencv_highgui opencv_core opencv_imgproc opencv_imgcodecs opencv_videoio)  # opencv4.5.2_x86_x64 opencv4.9_x86_x64
+    set(OPENCV_INCLUDE ${ROOT_PATH}/3rdlibs/opencv4.9.0_x86_x64/include/ )
+    set(OPENCV_LIBPATH ${ROOT_PATH}/3rdlibs/opencv4.9.0_x86_x64/lib/ ) 
+    set(OPENCV_LIBS opencv_highgui opencv_core opencv_imgproc opencv_imgcodecs opencv_videoio)  # opencv4.9.0_x86_x64 opencv4.9_x86_x64
 endif()
 
 # compile flags

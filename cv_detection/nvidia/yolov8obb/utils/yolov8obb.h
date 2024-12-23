@@ -1,8 +1,8 @@
 /*
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-20 09:56:53
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2024-11-29 16:43:08
+ * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
+ * @LastEditTime: 2024-12-13 10:45:38
  * @Description:  YOLOv8OBB模型前处理、推理、后处理代码
  */
 #ifndef YOLOV8OBBMODEL_H
@@ -44,6 +44,7 @@ public:
 private:
     int m_kOutputSize;  
     int m_kInputSize;
+    int m_kDecodeSize; 
 
     model_param_t m_model;
     trt_param_t m_trt;
@@ -56,6 +57,9 @@ private:
 
     float* inputSrcDevice;
     float* outputSrcDevice;
+
+    float* decode_ptr_host = nullptr;    // CPU用于接收GPU上置信度筛选和NMS后的结果
+    float* decode_ptr_device = nullptr;  // 用于存放解码后的结果，进行置信度筛选和NMS
     
     std::vector<float> inputData;
     std::vector<float> output_data;

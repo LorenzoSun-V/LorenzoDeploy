@@ -1,10 +1,12 @@
 #include "utils.h"
 #include <iostream>
+#include <opencv2/opencv.hpp>
 #include <regex>
 #include <sys/time.h>
 #include <fstream>
 #include <sstream>
 #include <dirent.h>
+#include <vector>
 
 //获取当前时刻毫秒级时间
 double GetCurrentTimeStampMS()
@@ -31,6 +33,54 @@ bool ReadFrameFromPath(const char* pImagePath, cv::Mat& frame)
         return false;
     }
     return true;
+}
+
+// 弧度转换为角度
+float radianToDegree(float radian) {
+    return radian * 180.0f / static_cast<float>(M_PI);
+}
+
+// 绘制旋转矩形框
+void DrawRotatedRectForImage(cv::Mat &image, const std::vector<DetBox> detBoxs) 
+{
+    if (image.empty()) {
+        std::cout << "Frame is empty." << std::endl;
+        return;
+    }
+
+    if (detBoxs.empty()) {
+        std::cout << "detBoxs is empty!" << std::endl;
+        return;
+    }
+
+    // 生成随机颜色
+    std::vector<cv::Scalar> color;
+    color.push_back(cv::Scalar(0, 0, 255));
+    color.push_back(cv::Scalar(0, 255, 0));
+    color.push_back(cv::Scalar(255, 0, 0));
+    color.push_back(cv::Scalar(0, 255, 255));
+
+    // 绘制每个检测框
+    for (const auto& obj : detBoxs) {
+        // 创建旋转矩形对象
+        cv::Point2f center(obj.x+obj.w/2, obj.y+obj.h/2);
+        cv::Size2f size(obj.w, obj.h);
+        float angle = radianToDegree(obj.radian);
+        cv::RotatedRect rotatedRect(center, size, angle);
+
+        // 获取旋转矩形的四个顶点
+        cv::Point2f vertices[4];
+        rotatedRect.points(vertices);
+
+        // 绘制旋转矩形
+        for (int j = 0; j < 4; j++) {
+            cv::line(image, vertices[j], vertices[(j + 1) % 4], color[static_cast<int>(obj.classID) % color.size()], 2);
+        }
+
+        // 在框的附近显示类别ID和置信度
+        std::string label = std::to_string(obj.classID) + ": " + std::to_string(obj.confidence);
+        cv::putText(image, label, cv::Point(obj.x, obj.y - 5), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
+    }
 }
 
 //在图像上绘制目标框
@@ -294,4 +344,96 @@ std::string replaceImageOutPath(const std::string& path, std::string suffix_name
     }
 
     return newPath;
+}
+
+// 判断一个点是否在多边形内
+bool isPointInPolygon(const cv::Point2f& point, const std::vector<cv::Point2f>& polygon)
+{
+    return pointPolygonTest(polygon, point, false) >= 0;
+}
+
+// 判断一个点是否在旋转矩形内
+bool isPointInRotatedRect(const cv::Point2f& point, const cv::RotatedRect& rect) 
+{
+    cv::Point2f center = rect.center;
+
+    float angle = rect.angle * CV_PI / 180.0;
+
+    float cosA = cos(-angle);
+    float sinA = sin(-angle);
+
+    float dx = point.x - center.x; 
+    float dy = point.y - center.y; 
+
+    float localX = dx * cosA - dy * sinA;
+    float localY = dx * sinA + dy * cosA;
+
+    float halfWidth = rect.size.width / 2.0;
+    float halfHeight = rect.size.height / 2.0;
+
+    return (abs(localX) <= halfWidth) && (abs(localY) <= halfHeight);
+}
+
+// 获取旋转矩形在多边形内所有点和交集部分的面积
+float getPointsInRotatedRectorArea(Rotates& Rotating) 
+{
+    cv::Rect boundingBox = Rotating.rotatedRect.boundingRect();
+
+    for (int y = boundingBox.y; y < boundingBox.y + boundingBox.height; y++) {
+        for (int x = boundingBox.x; x < boundingBox.x + boundingBox.width; x++) {
+            if (x >= 0 && x < Rotating.width && y >= 0 && y < Rotating.height) 
+            {
+                if (isPointInRotatedRect(cv::Point2f(x, y), Rotating.rotatedRect)) 
+                {
+                    Rotating.points.emplace_back(x, y);
+                }
+            }
+        }
+    }
+
+    float intersectionArea = 0.0f;
+    for (const auto& pt : Rotating.points) {
+        if (isPointInPolygon(cv::Point2f(pt.x, pt.y), Rotating.polygon)) {
+            intersectionArea += 1.0f; // 计算交集区域的点数
+            Rotating.pointsInPolygon.push_back(pt); // 把点坐标顺便记下来.
+        }
+    }
+    float rectArea = Rotating.size.width * Rotating.size.height;
+    float intersectionPercentage = (intersectionArea / rectArea) * 100.0f;
+
+    return intersectionPercentage;
+}
+
+// 绘制多边形和旋转矩形
+void drawAndSaveTemperatureMap(const Rotates& Rotating, const std::string& filename) 
+{
+    // 创建一个临时Mat
+    cv::Mat colorMap(288, 384, CV_8UC3, cv::Scalar(128, 128, 128));
+
+    for (const auto& pt : Rotating.points) {
+        colorMap.at<cv::Vec3b>(pt.y, pt.x) = cv::Vec3b(0, 255, 255); // 黄色
+    }
+
+    for (const auto& pt : Rotating.pointsInPolygon) {
+        colorMap.at<cv::Vec3b>(pt.y, pt.x) = cv::Vec3b(255, 0, 0); // 蓝色
+    }
+
+    for (size_t i = 0; i < Rotating.polygon.size(); i++) {
+        line(colorMap, Rotating.polygon[i], Rotating.polygon[(i + 1) % Rotating.polygon.size()], cv::Scalar(0, 255, 0), 2); // 绿色
+    }
+
+    imwrite(filename, colorMap);
+    std::cout << "Saved temperature map to " << filename << std::endl;
+}
+
+// 获取旋转框内的最大温度
+float getMaxTemperature(const std::vector<cv::Point>& points, const float temp[384][288]) 
+{
+    float maxTemp = -FLT_MAX;
+
+    for (const auto& pt : points) {
+        float tempValue = temp[pt.x][pt.y];
+        maxTemp = std::max(maxTemp, tempValue);
+    }
+    return maxTemp;
 }

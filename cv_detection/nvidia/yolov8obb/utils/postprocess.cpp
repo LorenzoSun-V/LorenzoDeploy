@@ -2,7 +2,7 @@
  * @FilePath: /jack/github/bt_alg_api/cv_detection/nvidia/yolov8obb/utils/postprocess.cpp
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-12-06 14:54:09
+ * @LastEditTime: 2024-12-12 13:29:59
  */
 #include "postprocess.h"
 
