@@ -1,9 +1,9 @@
 /*
- * @FilePath: /jack/bt_alg_api/include/common.h
+ * @FilePath: /jack/github/bt_alg_api/include/common.h
  * @Description:错误码定义
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-12-12 13:30:34
+ * @LastEditTime: 2024-12-23 14:18:47
  */
 
 #pragma once
@@ -42,6 +42,13 @@ struct DetBox {
         h = (y2 > y) ? (y2 - y) : 0.0f;
     }
 };   
+ //图像分类结果
+struct ClsResult {
+    int class_id;    // 类别ID
+    float score;  // 分数
+     // 默认构造函数
+    ClsResult() : class_id(-1), score(0.0f) {}
+};
 
 typedef enum {
     /// 通用错误码定义:范围0x0000-0x00FF
