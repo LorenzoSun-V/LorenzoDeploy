@@ -1,3 +1,10 @@
+/*
+ * @Author: BTZN0325 sunjiahui@boton-tech.com
+ * @Date: 2024-11-19 15:16:36
+ * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
+ * @LastEditTime: 2024-12-23 15:53:39
+ * @Description: 
+ */
 #include <string>
 #include <vector>
 #include <iostream>
@@ -33,12 +40,6 @@ ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInsta
     {
         std::cout << "LoadDeepModelModules input weights file is NULL!" << std::endl;
 	    return ERR_INVALID_PARAM;
-    }
-
-    struct stat buffer;
-    if (!stat(pWeightsfile, &buffer) == 0) {
-        std::cerr << "Error: File " << pWeightsfile << " does not exist!" << std::endl;
-        return ERR_MODEL_INPUTPATH_NOT_EXIST;
     }
 
     //load dnn model     

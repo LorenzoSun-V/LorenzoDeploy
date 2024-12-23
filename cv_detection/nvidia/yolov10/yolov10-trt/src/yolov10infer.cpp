@@ -45,12 +45,6 @@ ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInsta
 	    return ERR_INVALID_PARAM;
     }
 
-    struct stat buffer;
-    if (!stat(pWeightsfile, &buffer) == 0) {
-        std::cerr << "Error: File " << pWeightsfile << " does not exist!" << std::endl;
-        return ERR_MODEL_INPUTPATH_NOT_EXIST;
-    }
-
     //load dnn model     
     YOLOV10ModelInstance* _instance =  new YOLOV10ModelInstance(); 
     if (NULL == _instance) {

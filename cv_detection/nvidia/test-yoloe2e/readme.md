@@ -1,12 +1,11 @@
 <!--
- * @FilePath: /jack/bt_alg_api/cv_detection/nvidia/test-yoloe2e/readme.md
+ * @FilePath: /jack/github/bt_alg_api/cv_detection/nvidia/test-yoloe2e/readme.md
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-11-07 16:34:06
+ * @LastEditTime: 2024-12-06 14:41:53
 -->
 ## 设置环境变量
 ```
-export LD_LIBRARY_PATH=/home/mic-710aix/nvlibs
 export LD_LIBRARY_PATH=/home/sysadmin/jack/nvlibs
 ```
 ## 测试单batch推理
@@ -15,8 +14,7 @@ export LD_LIBRARY_PATH=/home/sysadmin/jack/nvlibs
 ```
 ## 测试多batch推理
 ```
-./test-batchinfer  /home/jack/TensorRT-8.5.2.2/bin/yolo11m_1_nms.engine /home/jack/Downloads/test3
-
+./test-batchinfer /home/sysadmin/jack/models/model8e2e_b16m_20240627_cls2_kjg_v0.2.1_b4_jack.bin /home/sysadmin/jack/images/zs/
 ```
 ## 验证模型精度
 ```

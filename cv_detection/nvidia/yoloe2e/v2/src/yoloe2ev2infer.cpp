@@ -32,12 +32,6 @@ ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInsta
         std::cout << "LoadDeepModelModules input weights file is nullptr !" << std::endl;
 	    return ERR_INVALID_PARAM;
     }
-    
-    struct stat buffer;
-    if (!stat(pWeightsfile, &buffer) == 0) {
-        std::cerr << "Error: File " << pWeightsfile << " does not exist!" << std::endl;
-        return ERR_MODEL_INPUTPATH_NOT_EXIST;
-    }
 
     //load model     
     YOLOE2Ev2ModelInstance* _instance = new YOLOE2Ev2ModelInstance();

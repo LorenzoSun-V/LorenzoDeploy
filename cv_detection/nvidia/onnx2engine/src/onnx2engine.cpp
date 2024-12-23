@@ -1,8 +1,8 @@
 /*
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-28 11:11:54
- * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-07-16 16:08:48
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2024-12-13 13:42:37
  * @Description: 
  */
 #include <fstream>
@@ -54,7 +54,7 @@ bool onnxToEngine(const std::string& onnxFile, int memorySize) {
     std::cout << "Try to create engine..." << std::endl;
     nvinfer1::IBuilderConfig* config = builder->createBuilderConfig();
     config->setMaxWorkspaceSize(1024 * 1024 * memorySize);
-    // config->setFlag(nvinfer1::BuilderFlag::kFP16);  // FP16 infer
+    //config->setFlag(nvinfer1::BuilderFlag::kFP16);  // FP16 infer
     nvinfer1::ICudaEngine* engine = builder->buildEngineWithConfig(*network, *config);
     if (!engine) {
         std::cerr << "Failed to create engine." << std::endl;

@@ -1,8 +1,8 @@
 /*
  * @Author: BTZN0323 jiajunjie@boton-tech.com
  * @Date: 2024-12-12 09:34:08
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2024-12-20 15:21:20
+ * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
+ * @LastEditTime: 2024-12-23 16:10:36
  * @Description: 图像分类代码
  */
 #include "classification.h"
@@ -40,6 +40,11 @@ ClasssificationModel::~ClasssificationModel() {
 }
 
 bool ClasssificationModel::loadModel(const std::string engine_name){
+    struct stat buffer;
+    if (!stat(engine_name.c_str(), &buffer) == 0) {
+        std::cerr << "Error: File " << engine_name << " does not exist!" << std::endl;
+        return false;
+    }
     if (!deserializeEngine(engine_name)) {
         std::cerr << "Failed to deserialize engine." << std::endl;
         return false;

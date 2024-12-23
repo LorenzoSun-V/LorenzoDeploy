@@ -120,6 +120,12 @@ FAILED:
 }
 
 bool YOLOV5Model::loadModel(const std::string& engine_name) {
+    struct stat buffer;
+    if (!stat(engine_name.c_str(), &buffer) == 0) {
+        std::cerr << "Error: File " << engine_name << " does not exist!" << std::endl;
+        return false;
+    }
+
     if (!deserializeEngine(engine_name)) {
         std::cerr << "Failed to deserialize engine." << std::endl;
         return false;

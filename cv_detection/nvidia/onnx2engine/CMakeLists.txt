@@ -15,7 +15,7 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
     set(TRT_INCLUDE /usr/include/aarch64-linux-gnu/)
     set(TRT_LIBPATH /usr/lib/aarch64-linux-gnu/)
 endif()
-set(TRT_LIBS nvinfer nvinfer_plugin  nvonnxparser)
+set(TRT_LIBS nvinfer nvinfer_plugin  nvonnxparser )
 
 # compile flags
 SET(CMAKE_CXX_FLAGS "-std=c++11  -pthread -Wall -Ofast -Wfatal-errors -D_MWAITXINTRIN_H_INCLUDED -O3")

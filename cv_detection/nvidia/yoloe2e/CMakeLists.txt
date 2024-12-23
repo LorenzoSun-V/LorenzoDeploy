@@ -45,7 +45,7 @@ endif()
 set(TRT_LIBS nvinfer nvonnxparser nvinfer_plugin)
 
 # compile flags
-SET(CMAKE_CXX_FLAGS "-W -Wall -Wno-sign-compare -fPIC -std=c++11 -O3")
+SET(CMAKE_CXX_FLAGS "-W -Wall -Wno-sign-compare -fPIC -std=c++17 -O3")
 
 # source 
 if(WITH_E2E_V2)

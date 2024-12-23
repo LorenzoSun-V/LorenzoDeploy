@@ -1,8 +1,8 @@
 <!--
- * @FilePath: /jack/bt_alg_api/onnx2engine/readme.md
+ * @FilePath: /jack/github/bt_alg_api/cv_detection/nvidia/onnx2engine/readme.md
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-11-04 18:55:07
+ * @LastEditTime: 2024-12-09 17:16:16
 -->
 ## 设置环境变量
 ```
@@ -10,5 +10,5 @@ export LD_LIBRARY_PATH=/home/sysadmin/jack/TensorRT-8.5.2.2/lib
 ```
 ## 模型转换
 ```
-./onnx2engine /home/sysadmin/jack/ultralytics/runs/detect/v8s_hw_cls2_320_v0.17_1104/weights/model8e2e_b16s_20241104_cls2_320_v0.17.onnx
+./onnx2engine /home/sysadmin/gmz/yolo/ultralytics_obb/runs/DOTA/model8_b32s-obb_20241205_cls2_hw_obb_v0.1/weights/model8_b32s-obb_20241205_cls2_hw_obb_v0.1.onnx
 ```

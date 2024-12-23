@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project(fastinfer)
 
-set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../)
+set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 
 #common 
 set(COMMON_INCLUDE ${ROOT_PATH}/include/ )

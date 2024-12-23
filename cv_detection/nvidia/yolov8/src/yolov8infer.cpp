@@ -3,7 +3,7 @@
  * @Description:  yolov8模型推理接口
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-09-03 16:07:47
+ * @LastEditTime: 2024-12-23 15:52:03
  */
 
 #include <string>
@@ -45,12 +45,6 @@ ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInsta
     {
         std::cerr << "input pWeightsfile is NULL!" << std::endl;
 	    return ERR_INVALID_PARAM;
-    }
-
-    struct stat buffer;
-    if (!stat(pWeightsfile, &buffer) == 0) {
-        std::cerr << "Error: File " << pWeightsfile << " does not exist!" << std::endl;
-        return ERR_MODEL_INPUTPATH_NOT_EXIST;
     }
 
     //load dnn model     

@@ -1,8 +1,8 @@
 /*
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-21 14:19:07
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2024-11-05 10:33:39
+ * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
+ * @LastEditTime: 2024-12-23 16:05:09
  * @Description: YOLOv10模型前处理、推理、后处理代码
  */
 #include "yolov10.h"
@@ -42,6 +42,11 @@ YOLOV10ModelManager::~YOLOV10ModelManager() {
 
 // Load the model from the serialized engine file
 bool YOLOV10ModelManager::loadModel(const std::string engine_name) {
+    struct stat buffer;
+    if (!stat(engine_name.c_str(), &buffer) == 0) {
+        std::cerr << "Error: File " << engine_name << " does not exist!" << std::endl;
+        return false;
+    }
     if (!deserializeEngine(engine_name)) {
         std::cerr << "Failed to deserialize engine." << std::endl;
         return false;

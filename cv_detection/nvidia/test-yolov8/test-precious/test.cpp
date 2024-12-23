@@ -48,15 +48,15 @@ int main(int argc, char* argv[])
 {
 	if(argc < 3){
         cout<<"param1: the make binary;"<<endl;
-        cout<<"param3: model path is the model and prototxt path;"<<endl;
         cout<<"param2: input the detect image file;"<<endl;
-        cout<<"example: ./binary [.bin/.engine] imagedir"<<endl;
+        cout<<"param3: model path is the model and prototxt path;"<<endl;
+        cout<<"example: ./binary imagepath weightsfile"<<endl;
         exit(-1);
  	}
     
-    const char* pWeightsfile = argv[1];
     const char* folderPath = argv[2];
-    
+    const char* pWeightsfile = argv[1];
+
     cv::Mat frame;
     void * pDNNInstance= NULL; 
     ENUM_ERROR_CODE eOK =  LoadDeepModelModules(pWeightsfile, &pDNNInstance);

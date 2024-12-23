@@ -38,12 +38,6 @@ ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInsta
 	    return ERR_INVALID_PARAM;
     }
 
-    struct stat buffer;
-    if (!stat(pWeightsfile, &buffer) == 0) {
-        std::cerr << "Error: File " << pWeightsfile << " does not exist!" << std::endl;
-        return ERR_MODEL_INPUTPATH_NOT_EXIST;
-    }
-
     YOLOV5DetectModelInstance* _instance =  new YOLOV5DetectModelInstance(); 
     if (NULL == _instance) {
          std::cout <<  "Init VideoStreamInstance failed." << std::endl;

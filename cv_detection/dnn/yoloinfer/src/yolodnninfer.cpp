@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-23 08:59:24
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-12-23 15:16:24
+ * @LastEditTime: 2024-12-23 15:47:45
  * @Description: 
  */
 #include <string>
@@ -10,10 +10,8 @@
 #include <iostream>
 #include <fstream>
 #include <sys/time.h>
-#include "cv_utils.h"
 #include "yolodnn.h"
 #include "yolodnninfer.h"
-
 
 class YOLOModelParam {
 public:
@@ -27,25 +25,18 @@ public:
 
 class YOLOModelInstance {
 public:
-   std::shared_ptr<YOLOModelParam> _param;
+    std::shared_ptr<YOLOModelParam> _param;
 
-   YOLOModelInstance() {
+    YOLOModelInstance() {
         _param = std::make_shared<YOLOModelParam>();
     }
 };
 
 ENUM_ERROR_CODE LoadDNNModelModules(const char* pWeightsfile, void** pDNNInstance)
 {   
-    if (pWeightsfile == NULL)
-    {
+    if (pWeightsfile == NULL){
         std::cerr << "input pWeightsfile is NULL!" << std::endl;
 	    return ERR_INVALID_PARAM;
-    }
-
-    struct stat buffer;
-    if (!stat(pWeightsfile, &buffer) == 0) {
-        std::cerr << "Error: File " << pWeightsfile << " does not exist!" << std::endl;
-        return ERR_MODEL_INPUTPATH_NOT_EXIST;
     }
 
     //load dnn model     

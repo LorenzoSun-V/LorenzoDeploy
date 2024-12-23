@@ -1,3 +1,9 @@
+/*
+ * @FilePath: /jack/github/bt_alg_api/cv_detection/nvidia/test-fastinfer/test-fastinfer/test.cpp
+ * @Copyright: 无锡宝通智能科技股份有限公司
+ * @Author: jiajunjie@boton-tech.com
+ * @LastEditTime: 2024-12-16 15:19:33
+ */
 #include <string>
 #include <vector>
 #include <iostream>
@@ -15,7 +21,6 @@ int main(int argc, char* argv[])
 		exit(-1);
 	}
 
-	
 	const char* pImagefile = argv[1];
 	const char* pWeightsfile = argv[2];
 	const char* pSerializefile = argv[3];
@@ -57,10 +62,12 @@ int main(int argc, char* argv[])
         //waitKey(1);
         //break;
     }
+
     if (total_time > 0) {
         std::cout << "total_time= " << total_time 
                   << " mean fps= "   <<1000/(total_time/1000) << std::endl;  
     }
+    
     DestoryDeepmodeInstance(&pDNNInstance);           
     std::cout << "Finish !"<<std::endl;
     return 0;

@@ -1,8 +1,8 @@
 /*
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-20 13:37:13
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2024-12-03 15:27:40
+ * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
+ * @LastEditTime: 2024-12-23 16:28:37
  * @Description: YOLOv8OBB模型GPU推理接口
  */
 
@@ -40,11 +40,6 @@ ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInsta
     if ( pWeightsfile == NULL) {
         std::cerr << "LoadDeepModelModules input weights file is NULL!" << std::endl;
 	    return ERR_INVALID_PARAM;
-    }
-
-    if (stat(pWeightsfile, nullptr) == 0) {
-        std::cerr << "Error: File " << pWeightsfile << " does not exist!" << std::endl;
-        return ERR_MODEL_INPUTPATH_NOT_EXIST;
     }
 
     //load dnn model     

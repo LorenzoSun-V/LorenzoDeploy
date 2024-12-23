@@ -6,8 +6,8 @@
  # @LastEditTime: 2024-10-17 11:57:16
  # @Description: 
 ### 
-
+rm -rf build
 mkdir build
 cd build
 cmake ..  
-make -j4
+make -j$(nproc)

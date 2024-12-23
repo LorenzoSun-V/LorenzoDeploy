@@ -8,34 +8,27 @@ YOLODNNModelManager::~YOLODNNModelManager() {
 }
 
 bool YOLODNNModelManager::loadModel(const std::string model_name){
-    try {
-        net = cv::dnn::readNetFromONNX(model_name);
-        net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
-        net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
-        std::cout << "Running on CPU with OpenCV backend" << std::endl;
-        
-        // 获取输入维度
-        std::vector<cv::dnn::MatShape> inLayerShapes;
-        std::vector<cv::dnn::MatShape> outLayerShapes;
-        cv::dnn::MatShape emptyShape;
-        net.getLayerShapes(emptyShape, 0, inLayerShapes, outLayerShapes); 
-        m_model_param.batch_size = inLayerShapes[0][0];
-        m_model_param.input_channel = inLayerShapes[0][1];
-        m_model_param.input_height = inLayerShapes[0][2];
-        m_model_param.input_width = inLayerShapes[0][3];
-        std::cout << "batch_size: " << m_model_param.batch_size << " input_channel: " << m_model_param.input_channel << " input_height: " << m_model_param.input_height << " input_width: " << m_model_param.input_width << std::endl;
-        return true;
-    } catch (const cv::Exception& e) {
-        std::cerr << "Error loading model: " << model_name << std::endl;
-        std::cerr << "OpenCV Error: " << e.what() << std::endl;
-        return false;
-    } catch (const std::exception& e) {
-        std::cerr << "General error occurred: " << e.what() << std::endl;
-        return false;
-    } catch (...) {
-        std::cerr << "An unknown error occurred while loading the model." << std::endl;
+    struct stat buffer;
+    if (!stat(model_name.c_str(), &buffer) == 0) {
+        std::cerr << "Error: File " << model_name << " does not exist!" << std::endl;
         return false;
     }
+    net = cv::dnn::readNetFromONNX(model_name);
+    net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+    net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+    std::cout << "Running on CPU with OpenCV backend" << std::endl;
+    
+    // 获取输入维度
+    std::vector<cv::dnn::MatShape> inLayerShapes;
+    std::vector<cv::dnn::MatShape> outLayerShapes;
+    cv::dnn::MatShape emptyShape;
+    net.getLayerShapes(emptyShape, 0, inLayerShapes, outLayerShapes); 
+    m_model_param.batch_size = inLayerShapes[0][0];
+    m_model_param.input_channel = inLayerShapes[0][1];
+    m_model_param.input_height = inLayerShapes[0][2];
+    m_model_param.input_width = inLayerShapes[0][3];
+    std::cout << "batch_size: " << m_model_param.batch_size << " input_channel: " << m_model_param.input_channel << " input_height: " << m_model_param.input_height << " input_width: " << m_model_param.input_width << std::endl;
+    return true;
 }
 
 cv::Mat YOLODNNModelManager::preprocess(cv::Mat img) {

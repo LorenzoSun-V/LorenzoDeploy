@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-21 14:19:07
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-12-13 11:19:47
+ * @LastEditTime: 2024-12-23 16:28:54
  * @Description: YOLOv8OBB模型前处理、推理、后处理代码
  */
 #include "yolov8obb.h"
@@ -46,6 +46,11 @@ YOLOV8OBBModel::~YOLOV8OBBModel() {
 
 // Load the model from the serialized engine file
 bool YOLOV8OBBModel::loadModel(const std::string engine_name) {
+    struct stat buffer;
+    if (!stat(engine_name.c_str(), &buffer) == 0) {
+        std::cerr << "Error: File " << engine_name << " does not exist!" << std::endl;
+        return false;
+    }
     if (!deserializeEngine(engine_name)) {
         std::cerr << "Failed to deserialize engine." << std::endl;
         return false;

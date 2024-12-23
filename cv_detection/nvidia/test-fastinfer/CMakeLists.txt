@@ -2,13 +2,13 @@ cmake_minimum_required(VERSION 3.0)
 
 project(modetest)
 
-set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../)
+set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 
 set(COMMON_INCLUDE ${ROOT_PATH}/include/ )
 
 # fastinfer
-set(FASTINFER_INCLUDE ${ROOT_PATH}/fastinfer/src/) 
-set(FASTINFER_LIBPATH ${ROOT_PATH}/fastinfer/build/src )
+set(FASTINFER_INCLUDE ${ROOT_PATH}/cv_detection/nvidia/fastinfer/src/) 
+set(FASTINFER_LIBPATH ${ROOT_PATH}/cv_detection/nvidia/fastinfer/build/src )
 set(FASTINFER_LIBS fastinfer)
 
 # opencv

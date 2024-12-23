@@ -4,7 +4,7 @@
 #include "NvInfer.h"
 #include "types.h"
 #include <map>
-
+#include <iostream>
 
 void cuda_preprocess_init(int max_image_size);
 

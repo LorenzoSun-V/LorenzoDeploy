@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-23 08:58:59
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-12-23 15:09:27
+ * @LastEditTime: 2024-12-23 15:36:49
  * @Description: 
  */
 #ifndef YOLODNNMODELMANAGER_H
@@ -12,7 +12,6 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <random>
 
 // OpenCV / DNN / Inference
 #include <opencv2/imgproc.hpp>
