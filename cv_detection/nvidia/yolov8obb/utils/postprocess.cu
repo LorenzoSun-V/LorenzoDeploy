@@ -1,144 +1,262 @@
 /*
- * @Author: BTZN0325 sunjiahui@boton-tech.com
- * @Date: 2024-12-12 14:49:46
- * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-12-13 11:52:54
- * @Description: YOLOv8 OBB CUDA后处理
+ * @FilePath: /jack/bt_alg_api/cv_detection/nvidia/yolov8obb/utils/postprocess.cu
+ * @Author: jiajunjie@boton-tech.com
+ * @LastEditTime: 2024-12-24 16:58:08
  */
-#include <iostream>
-#include <vector>
-#include <map>
-#include <cmath>
-#include <tuple>
-#include <algorithm>
-#include <opencv2/opencv.hpp>
-
-#include <cuda_runtime.h>
-#include <device_launch_parameters.h>
-#include <thrust/device_vector.h>
-#include <thrust/sort.h>
-#include <thrust/remove.h>
-
 
 #include "postprocess.h"
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <cmath>
+#include <stdio.h>
 
-
-// GPU上计算概率IoU的 device 函数
-static __device__ void convariance_matrix(float w, float h, float r, float& a, float& b, float& c){
-    float a_val = w * w / 12.0f;
-    float b_val = h * h / 12.0f;
-    float cos_r = cosf(r); 
-    float sin_r = sinf(r);
-
-    a = a_val * cos_r * cos_r + b_val * sin_r * sin_r;
-    b = a_val * sin_r * sin_r + b_val * cos_r * cos_r;
-    c = (a_val - b_val) * sin_r * cos_r;
+// Device function to compute covariance matrix elements for a bounding box
+__device__ void covariance_matrix(const BBox& box, float& a_val, float& b_val, float& c_val) {
+    float w = box.w;
+    float h = box.h;
+    float rad = box.radian;
+    
+    float a = (w * w) / 12.0f;
+    float b = (h * h) / 12.0f;
+    float c = rad;
+    
+    float cos_r = cosf(c);
+    float sin_r = sinf(c);
+    
+    float cos_r2 = cos_r * cos_r;
+    float sin_r2 = sin_r * sin_r;
+    
+    a_val = a * cos_r2 + b * sin_r2;
+    b_val = a * sin_r2 + b * cos_r2;
+    c_val = (a - b) * cos_r * sin_r;
 }
 
-static __device__ float box_probiou(
-    float cx1, float cy1, float w1, float h1, float r1,
-    float cx2, float cy2, float w2, float h2, float r2,
-    float eps = 1e-7
-){
-
-    // Calculate the prob iou between oriented bounding boxes, https://arxiv.org/pdf/2106.06072v1.pdf.
-    float a1, b1, c1, a2, b2, c2;
-    convariance_matrix(w1, h1, r1, a1, b1, c1);
-    convariance_matrix(w2, h2, r2, a2, b2, c2);
-
-    float t1 = ((a1 + a2) * powf(cy1 - cy2, 2) + (b1 + b2) * powf(cx1 - cx2, 2)) / ((a1 + a2) * (b1 + b2) - powf(c1 + c2, 2) + eps);
-    float t2 = ((c1 + c2) * (cx2 - cx1) * (cy1 - cy2)) / ((a1 + a2) * (b1 + b2) - powf(c1 + c2, 2) + eps);
-    float t3 = logf(((a1 + a2) * (b1 + b2) - powf(c1 + c2, 2)) / (4 * sqrtf(fmaxf(a1 * b1 - c1 * c1, 0.0f)) * sqrtf(fmaxf(a2 * b2 - c2 * c2, 0.0f)) + eps) + eps); 
+// Device function to compute probiou between two bounding boxes
+__device__ float compute_probiou(const BBox& res1, const BBox& res2, float eps = 1e-7f) {
+    float a1, b1, c1;
+    float a2, b2, c2;
+    
+    // Compute covariance matrices for both boxes
+    covariance_matrix(res1, a1, b1, c1);
+    covariance_matrix(res2, a2, b2, c2);
+    
+    // Compute distance components
+    float dx = res1.center_x - res2.center_x;
+    float dy = res1.center_y - res2.center_y;
+    
+    // Compute terms t1, t2, t3 based on covariance matrices and positions
+    float numerator_t1 = (a1 + a2) * dy * dy + (b1 + b2) * dx * dx;
+    float denominator = (a1 + a2) * (b1 + b2) - (c1 + c2) * (c1 + c2) + eps;
+    float t1 = numerator_t1 / denominator;
+    
+    float t2 = ((c1 + c2) * dx * dy) / denominator;
+    
+    float t3_numerator = (a1 + a2) * (b1 + b2) - (c1 + c2) * (c1 + c2);
+    float t3_denominator = 4.0f * sqrtf(fmaxf(a1 * b1 - c1 * c1, 0.0f)) * sqrtf(fmaxf(a2 * b2 - c2 * c2, 0.0f)) + eps;
+    float t3 = logf((t3_numerator / t3_denominator) + eps);
+    
     float bd = 0.25f * t1 + 0.5f * t2 + 0.5f * t3;
     bd = fmaxf(fminf(bd, 100.0f), eps);
     float hd = sqrtf(1.0f - expf(-bd) + eps);
-    return 1 - hd;    
+    
+    return 1.0f - hd;
 }
 
-static __global__ void decode_kernel(float* predict, int num_bboxes, int num_classes, float confidence_threshold, float* parray, int max_objects){  
-    // cx, cy, w, h, cls, angle
-
-    int position = blockDim.x * blockIdx.x + threadIdx.x;
-    if (position >= num_bboxes) return;
-
-    float* pitem            = predict + (5 + num_classes) * position;
-    float* class_confidence = pitem + 4;
-    float confidence        = *class_confidence++;
-    int label               = 0;
-    // 打印每个线程的confidence值
-    printf("Thread [%d, %d, %d]: Position %d, Confidence: %f, Label: %d\n",
-           blockIdx.x, blockIdx.y, blockIdx.z,
-           position, confidence, label);
-    // 通过循环找到置信度最高的类别，并记录对应的 label。
-    for(int i = 1; i < num_classes; ++i, ++class_confidence){
-        if(*class_confidence > confidence){
-            confidence = *class_confidence;
-            label      = i;
+// CUDA Kernel for decoding OBB predictions
+__global__ void decode_obb_kernel(
+    const float* predict,            // Raw predictions [num_bboxes * bbox_element]
+    DecodedBBox* decoded_boxes,      // Output decoded boxes [max_objects]
+    int num_bboxes,
+    int num_classes,
+    float confidence_threshold,
+    int max_objects
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= num_bboxes) return;
+    
+    // Each prediction has (5 + num_classes) elements: cx, cy, w, h, radian, classes
+    const float* box_ptr = predict + idx * (5 + num_classes);
+    
+    // Decode bounding box parameters
+    BBox box;
+    box.center_x = box_ptr[0];
+    box.center_y = box_ptr[1];
+    box.w = box_ptr[2];
+    box.h = box_ptr[3];
+    box.radian = box_ptr[4];
+    
+    // Find the class with the highest confidence
+    float max_conf = -1.0f;
+    int class_id = -1;
+    for(int c = 0; c < num_classes; ++c){
+        float class_conf = box_ptr[5 + c];
+        if(class_conf > max_conf){
+            max_conf = class_conf;
+            class_id = c;
         }
     }
-
-    if(confidence < confidence_threshold)
-        return;
-
-    int index = atomicAdd(parray, 1);
-    if(index >= max_objects)
-        return;
-
-    float cx         = *pitem++;
-    float cy         = *pitem++;
-    float width      = *pitem++;
-    float height     = *pitem++;
-    float angle      = *(pitem + num_classes);
-
-    float* pout_item = parray + 1 + index * 8;
-    *pout_item++ = cx;
-    *pout_item++ = cy;
-    *pout_item++ = width;
-    *pout_item++ = height;
-    *pout_item++ = angle;
-    *pout_item++ = confidence;
-    *pout_item++ = label;
-    *pout_item++ = 1; // 1 = keep, 0 = ignore
-}
-
-static __global__ void nms_kernel(float* bboxes, int max_objects, float threshold){
-
-        int position = (blockDim.x * blockIdx.x + threadIdx.x);
-        int count = min((int)*bboxes, max_objects);
-        if (position >= count) 
-            return;
-        
-        // cx, cy, w, h, angle, confidence, class_label, keepflag
-        float* pcurrent = bboxes + 1 + position * 8;
-        for(int i = 0; i < count; ++i){
-            float* pitem = bboxes + 1 + i * 8;
-            if(i == position || pcurrent[6] != pitem[6]) continue;
-
-            if(pitem[5] >= pcurrent[5]){
-                if(pitem[5] == pcurrent[5] && i < position)
-                    continue;
-
-                float iou = box_probiou(
-                    pcurrent[0], pcurrent[1], pcurrent[2], pcurrent[3], pcurrent[4],
-                    pitem[0],    pitem[1],    pitem[2],    pitem[3],    pitem[4]
-                );
-
-                if(iou > threshold){
-                    pcurrent[7] = 0;  // 1=keep, 0=ignore
-                    return;
-                }
-            }
+    
+    // Final confidence score
+    float confidence = max_conf; // Assuming objectness is part of class_conf
+    
+    // Apply confidence threshold
+    if(confidence >= confidence_threshold && class_id != -1){
+        // Write to decoded_boxes if within max_objects
+        if(idx < max_objects){
+            decoded_boxes[idx].center_x = box.center_x;
+            decoded_boxes[idx].center_y = box.center_y;
+            decoded_boxes[idx].w = box.w;
+            decoded_boxes[idx].h = box.h;
+            decoded_boxes[idx].radian = box.radian;
+            decoded_boxes[idx].confidence = confidence;
+            decoded_boxes[idx].class_id = class_id;
         }
-    } 
-
-void cuda_decode_obb(float* predict, int num_bboxes, int num_classes, float confidence_threshold, float* parray, int max_objects, cudaStream_t stream) {
-    int block = 256;
-    int grid = ceil(num_bboxes / (float)block);
-    decode_kernel<<<grid, block, 0, stream>>>((float*)predict, num_bboxes, num_classes, confidence_threshold, parray, max_objects);
+    }
+    else{
+        // Mark as invalid by setting confidence to 0
+        if(idx < max_objects){
+            decoded_boxes[idx].confidence = 0.0f;
+        }
+    }
 }
 
-void cuda_nms_obb(float* parray, float nms_threshold, int max_objects, cudaStream_t stream){
-    int block = max_objects < 256 ? max_objects : 256;
-    int grid = ceil(max_objects / (float)block);
-    nms_kernel<<<grid, block, 0, stream>>>(parray, max_objects, nms_threshold);
+// CUDA Kernel for NMS of OBBs
+__global__ void nms_obb_kernel(
+    DecodedBBox* decoded_boxes, // [max_objects]
+    int num_boxes,
+    float iou_threshold
+){
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if(idx >= num_boxes) return;
+    
+    // Early exit if this box is already suppressed
+    if(decoded_boxes[idx].confidence == 0.0f) return;
+    
+    // Compare with other boxes
+    for(int j = idx + 1; j < num_boxes; ++j){
+        if(decoded_boxes[j].confidence == 0.0f) continue;
+        
+        // Only compare boxes of the same class
+        if(decoded_boxes[j].class_id != decoded_boxes[idx].class_id) continue;
+        
+        // Compute probiou
+        BBox box1 = {
+            decoded_boxes[idx].center_x,
+            decoded_boxes[idx].center_y,
+            decoded_boxes[idx].w,
+            decoded_boxes[idx].h,
+            decoded_boxes[idx].radian,
+            decoded_boxes[idx].confidence,
+            decoded_boxes[idx].class_id
+        };
+        BBox box2 = {
+            decoded_boxes[j].center_x,
+            decoded_boxes[j].center_y,
+            decoded_boxes[j].w,
+            decoded_boxes[j].h,
+            decoded_boxes[j].radian,
+            decoded_boxes[j].confidence,
+            decoded_boxes[j].class_id
+        };
+        float iou = compute_probiou(box1, box2);
+        
+        if(iou >= iou_threshold){
+            // Suppress box j by setting its confidence to 0
+            decoded_boxes[j].confidence = 0.0f;
+        }
+    }
+}
+
+// Host function to decode OBB on GPU
+void cuda_decode_obb(
+    const float* predict,
+    int num_bboxes,
+    int num_classes,
+    float confidence_threshold,
+    DecodedBBox* parray,
+    int max_objects,
+    cudaStream_t stream
+){
+    // Define CUDA kernel launch parameters
+    int threads = 256;
+    int blocks = (num_bboxes + threads - 1) / threads;
+    
+    // Launch the decode kernel
+    decode_obb_kernel<<<blocks, threads, 0, stream>>>(
+        predict,
+        parray,
+        num_bboxes,
+        num_classes,
+        confidence_threshold,
+        max_objects
+    );
+    
+    // Error checking
+    cudaError_t err = cudaGetLastError();
+    if(err != cudaSuccess){
+        fprintf(stderr, "Failed to launch decode_obb_kernel (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+}
+
+// Host function to perform NMS on GPU
+void cuda_nms_obb(
+    DecodedBBox* parray,
+    float nms_threshold,
+    int max_objects,
+    cudaStream_t stream
+){
+    // Define CUDA kernel launch parameters
+    int threads = 256;
+    int blocks = (max_objects + threads - 1) / threads;
+    
+    // Launch the NMS kernel
+    nms_obb_kernel<<<blocks, threads, 0, stream>>>(
+        parray,
+        max_objects,
+        nms_threshold
+    );
+    
+    // Error checking
+    cudaError_t err = cudaGetLastError();
+    if(err != cudaSuccess){
+        fprintf(stderr, "Failed to launch nms_obb_kernel (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+}
+
+// Host function to decode and perform NMS on GPU
+void cuda_decode_and_nms_obb(
+    const float* predict,
+    int num_bboxes,
+    int num_classes,
+    float confidence_threshold,
+    float nms_threshold,
+    DecodedBBox* parray,
+    int max_objects,
+    cudaStream_t stream
+){
+    // First, decode the bounding boxes
+    cuda_decode_obb(
+        predict,
+        num_bboxes,
+        num_classes,
+        confidence_threshold,
+        parray,
+        max_objects,
+        stream
+    );
+    
+    // Wait for decoding to finish before starting NMS
+    cudaStreamSynchronize(stream);
+    
+    // Then, perform NMS
+    cuda_nms_obb(
+        parray,
+        nms_threshold,
+        max_objects,
+        stream
+    );
+    
+    // Note: Synchronization is handled by the caller after this function
 }
