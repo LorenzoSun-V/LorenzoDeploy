@@ -2,7 +2,7 @@
  * @FilePath: /jack/github/bt_alg_api/cv_detection/nvidia/yolov8obb/utils/postprocess.cpp
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-12-12 13:29:59
+ * @LastEditTime: 2024-12-13 09:48:36
  */
 #include "postprocess.h"
 
@@ -115,6 +115,7 @@ void nms_obb(std::vector<BBox>& res, float* output,  model_param_t model_param) 
             for (size_t j = i + 1; j < bboxes.size(); ++j) {
                 if (probiou(bboxes[i], bboxes[j]) >= model_param.iou_thresh) {
                     suppressed[j] = true; // 抑制 IoU 大于阈值的框
+
                 }
             }
         }

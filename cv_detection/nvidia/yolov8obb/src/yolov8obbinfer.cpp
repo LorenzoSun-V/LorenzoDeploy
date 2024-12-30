@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-20 13:37:13
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-12-23 16:28:37
+ * @LastEditTime: 2024-12-23 15:55:16
  * @Description: YOLOv8OBB模型GPU推理接口
  */
 

@@ -288,18 +288,12 @@ bool YOLOV10ModelManager::doInference(std::vector<cv::Mat> img_batch, std::vecto
         return false;
     }
 
-    if (cudaMemcpyAsync(inputSrcDevice, inputData.data(), img_batch.size() * m_channel * m_kInputH * m_kInputW * sizeof(float), 
-            cudaMemcpyHostToDevice, stream) != cudaSuccess) {
-        std::cerr << "Failed to copy input data to device." << std::endl;
-        return false;
-    }
     if (cudaMemcpyAsync(output_data.data(), outputSrcDevice, img_batch.size() * kOutputSize * 6 * sizeof(float), 
             cudaMemcpyDeviceToHost, stream) != cudaSuccess) {
         std::cerr << "Failed to copy output data to host." << std::endl;
         return false;
     }
     cudaStreamSynchronize(stream);
-    //return postProcess(output_data.data(), batchDetBoxes);
     return postProcess2(output_data.data(), img_batch, batchDetBoxes);
 }
 

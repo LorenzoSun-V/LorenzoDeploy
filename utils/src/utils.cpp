@@ -120,6 +120,68 @@ ENUM_ERROR_CODE DrawRectDetectResultForImage(cv::Mat &frame, std::vector<DetBox>
     return ENUM_OK;
 }  
 
+ENUM_ERROR_CODE DrawInstanceSegmentResultForImage(cv::Mat &frame, std::vector<SegBox> detBoxs, std::vector<cv::Mat> masks)
+{
+    if (frame.empty()){
+        std::cout <<  "frame is empty." << std::endl;
+        return ERR_INPUT_IMAGE_EMPTY;
+    }
+    if( detBoxs.empty() ){
+    	std::cout << "detBoxs is empty!" << std::endl;
+	    return ERR_INVALID_PARAM;
+    }
+    if (masks.empty()){
+        std::cout << "masks is empty!" << std::endl;
+        return ERR_INVALID_PARAM;
+    }
+     
+	// 生成随机颜色
+    std::vector<cv::Scalar> color;
+    srand(time(0));
+    for (int i = 0; i < 80; i++) {
+        int b = rand() % 256;
+        int g = rand() % 256;
+        int r = rand() % 256;
+        color.push_back(cv::Scalar(b, g, r));
+	}
+
+    // 画图
+    for (size_t i = 0; i < detBoxs.size(); i++)
+    {
+        const SegBox& obj = detBoxs[i];
+        int labelID = obj.classID;
+
+        auto img_mask = masks[i];
+
+        // 建立Rect并与图像边界剪裁
+        cv::Rect r(obj.x, obj.y, obj.w, obj.h);
+        r.x      = std::max(0, r.x);
+        r.y      = std::max(0, r.y);
+        r.width  = std::min(r.width,  frame.cols - r.x);
+        r.height = std::min(r.height, frame.rows - r.y);
+
+        // ============= 绘制掩码(半透明覆盖) ============
+        // 在剪裁后的矩形 r 内，对 mask>0.5 的像素进行上色
+        for (int yy = r.y; yy < r.y + r.height; yy++) {
+            for (int xx = r.x; xx < r.x + r.width; xx++) {
+                float val = img_mask.at<float>(yy, xx);
+                // 值小于等于0.5，忽略，这个值可以根据项目调整
+                if (val <= 0.5f) continue;
+                // 在 frame 上进行简单混合
+                cv::Vec3b &pix = frame.at<cv::Vec3b>(yy, xx);
+                pix[0] = static_cast<uchar>(pix[0] * 0.5 + color[obj.classID][0] * 0.5);
+                pix[1] = static_cast<uchar>(pix[1] * 0.5 + color[obj.classID][1] * 0.5);
+                pix[2] = static_cast<uchar>(pix[2] * 0.5 + color[obj.classID][2] * 0.5);
+            }
+        }
+        // 画bbox
+        cv::rectangle(frame, cv::Rect(obj.x, obj.y, obj.w, obj.h), color[obj.classID], 2, 8);
+        std::string strid = std::to_string(labelID) +':'+ std::to_string(obj.confidence);
+        cv::putText(frame, strid, cv::Point(obj.x+10, obj.y+25), cv::FONT_HERSHEY_COMPLEX, 1, cv::Scalar(0, 255, 255), 1, 8, 0);               
+    }
+
+    return ENUM_OK;
+}  
 
 //ip地址正确性检查
 int CheckValidIPAddress(const std::string& ipaddr) 

@@ -2,7 +2,7 @@
  * @Description: 集成视觉相关小功能模块
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-12-06 13:36:21
+ * @LastEditTime: 2024-12-27 16:30:28
  */
 #pragma once
 
@@ -64,6 +64,20 @@ extern "C"
     void DrawRotatedRectForImage(
         cv::Mat &image, 
         const std::vector<DetBox> detBoxs
+    );
+
+    /*
+     * @brief 标记识别框，绘制实例分割结果
+     *	   
+     * @param   frame                   输入检测图片/返回结果帧 
+     * @param   detBoxs                 输入实例分割 检测框和mask结果       
+     * 
+     * @return  ENUM_ERROR_CODE         返回错误码
+     */
+    ENUM_ERROR_CODE DrawInstanceSegmentResultForImage(
+        cv::Mat &frame, 
+        std::vector<SegBox> detBoxs,
+        std::vector<cv::Mat> masks
     );
 
      /*

@@ -3,7 +3,7 @@
  * @Description:错误码定义
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-12-23 14:18:47
+ * @LastEditTime: 2024-12-30 11:54:44
  */
 
 #pragma once
@@ -17,10 +17,10 @@
 
 //模型结果存放数据结构
 struct DetBox {
-    float x, y, h, w;//目标框左上角坐标x1,y2和框的长宽h,w
-    float confidence;//预测精度
-    int classID;//类别ID
-    float radian;//旋转框弧度
+    float x, y, h, w;  //topleft_x、topleft_y、w、h
+    float confidence;  //预测精度
+    int classID;      //类别ID
+    float radian;     //旋转框弧度
     DetBox() {
         x = 0.0;
         y = 0.0;
@@ -41,7 +41,43 @@ struct DetBox {
         w = (x2 > x) ? (x2 - x) : 0.0f;
         h = (y2 > y) ? (y2 - y) : 0.0f;
     }
-};   
+};
+
+struct SegBox {
+    float x, y, h, w;  // topleft_x、topleft_y、w、h
+    float confidence;  //预测精度
+    int classID;       //类别ID
+    float mask[32];    //mask系数
+    SegBox() {
+        x = 0.0;
+        y = 0.0;
+        h = 0.0;
+        w = 0.0;
+        confidence = 0.0;
+        classID = -1;
+        for (int i = 0; i < 32; i++) {
+            mask[i] = 0.0;
+        }
+    }
+
+    bool operator==(const SegBox& other) const {
+        if (x != other.x || y != other.y || h != other.h || w != other.w ||
+            confidence != other.confidence || classID != other.classID)
+            return false;
+        for (int i = 0; i < 32; ++i) {
+            if (mask[i] != other.mask[i]) return false;
+        }
+        return true;
+    }
+    
+    void initBox(float x1, float y1, float x2, float y2) {
+        x = (x1 > 0) ? x1 : 0.0f;
+        y = (y1 > 0) ? y1 : 0.0f;
+        w = (x2 > x) ? (x2 - x) : 0.0f;
+        h = (y2 > y) ? (y2 - y) : 0.0f;
+    }
+};
+
  //图像分类结果
 struct ClsResult {
     int class_id;    // 类别ID
