@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-30 15:35:12
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2025-01-06 09:48:55
+ * @LastEditTime: 2025-01-06 11:32:22
  * @Description: YOLO instance segmentation model batch inference
  */
 
@@ -57,24 +57,24 @@ int main(int argc, char* argv[])
     } 
     std::cout<<"Init Finshed!"<<std::endl;
 
-    std::vector<std::vector<SegBox>> batchdetBoxs;
+    std::vector<std::vector<SegBox>> batchsegBoxs;
     std::vector<std::vector<cv::Mat>> batchmasks;
     double t_detect_start = GetCurrentTimeStampMS();
-    BatchInferenceGetDetectResult(pDeepInstance, frames_list, batchdetBoxs, batchmasks);
+    BatchInferenceGetDetectResult(pDeepInstance, frames_list, batchsegBoxs, batchmasks);
     double t_detect_end = GetCurrentTimeStampMS();  
 
     fprintf(stdout, "detection time %.02lfms\n", t_detect_end - t_detect_start);
 
     int frame_num = static_cast<int>(frames_list.size());
-    std::cout << "Total images: " << frame_num <<" detect result: " << batchdetBoxs.size() << std::endl;
+    std::cout << "Total images: " << frame_num <<" detect result: " << batchsegBoxs.size() << std::endl;
 
-    for (int i = 0; i < frame_num && batchdetBoxs.size() > 0; i++) {
+    for (int i = 0; i < frame_num && batchsegBoxs.size() > 0; i++) {
         // 获取原始图像名称
         std::string baseImageName = getBaseFileName(imagePaths[i]);
    
         // 生成新的图像名称，原始名称 + 下横线 + 序号
         std::string imagename = "_" + baseImageName.substr(0, baseImageName.find_last_of('.')) + ".jpg";
-        DrawInstanceSegmentResultForImage(frames_list[i], batchdetBoxs[i], batchmasks[i]);   
+        DrawInstanceSegmentResultForImage(frames_list[i], batchsegBoxs[i], batchmasks[i]);   
         cv::imwrite(imagename, frames_list[i]);
     }
    

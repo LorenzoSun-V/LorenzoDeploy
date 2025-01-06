@@ -30,6 +30,9 @@ static bool cmp(const InstanceSegResult& a, const InstanceSegResult& b) {
 }
 
 cv::Mat scale_mask(cv::Mat mask, cv::Mat img, int model_height, int model_width) {
+    if (mask.empty() || img.empty()) {
+        std::cerr << "mask or img is empty." << std::endl;
+    }
     int x, y, w, h;
     float r_w = model_width / (img.cols * 1.0);
     float r_h = model_height / (img.rows * 1.0);
@@ -50,9 +53,10 @@ cv::Mat scale_mask(cv::Mat mask, cv::Mat img, int model_height, int model_width)
     return res;
 }
 
-void batch_nms(std::vector<std::vector<InstanceSegResult>>& batch_res, float* output, model_param_t model_param, bool yolov8)
+void batch_nms(std::vector<std::vector<InstanceSegResult>>& batch_res, float* output, model_param_t model_param, bool m_buseyolov8)
 {
-    if(NULL == output){
+
+    if(nullptr == output){
         std::cerr << "output is NULL." << std::endl;
         return ;
     }
@@ -68,7 +72,7 @@ void batch_nms(std::vector<std::vector<InstanceSegResult>>& batch_res, float* ou
             float confidence = -1.0f;
             int class_id = -1;
 
-            if (yolov8) {
+            if (m_buseyolov8) {
                 // 找到当前检测框中最高类别置信度
                 for (int c = 0; c < model_param.num_classes; ++c) {
                     float class_conf = output[(batch_idx * model_param.num_bboxes + i) * model_param.bbox_element + 4 + c]; // YOLOv8类别置信度从第5个字段开始
@@ -160,7 +164,11 @@ bool postprocess_batch(
 {
 
     if(batch_images.empty() ) {
-        std::cerr << "bboxes result is NULL." << std::endl;
+        std::cerr << "images is NULL." << std::endl;
+        return false;
+    }
+    if(batch_masks.empty()) {
+        std::cerr << "masks is NULL." << std::endl;
         return false;
     }
     if(batch_bboxes.empty()) {
@@ -274,6 +282,10 @@ void batch_process_mask(
     std::vector<std::vector<cv::Mat>>& batch_masks, 
     const model_param_t& model_param) 
 {
+    if (nullptr == proto) {
+        std::cerr << "proto is NULL." << std::endl;
+        return;
+    }
     batch_masks.clear();
 
     // offset of proto for each batch

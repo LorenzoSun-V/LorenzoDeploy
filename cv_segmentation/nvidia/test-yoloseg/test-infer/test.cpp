@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-26 09:14:21
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2025-01-06 09:48:58
+ * @LastEditTime: 2025-01-06 11:32:07
  * @Description: 
  */
 #include <string>
@@ -59,18 +59,18 @@ int main(int argc, char* argv[])
     int frame_num = static_cast<int>(batchframes.size());
     double total_time = 0.0;
     int index=1;
-    std::vector<SegBox> detBoxs;
+    std::vector<SegBox> segBoxs;
     std::vector<cv::Mat> masks;
     for( auto& frame: batchframes)
     {
-        detBoxs.clear();
+        segBoxs.clear();
         double t_detect_start = GetCurrentTimeStampMS();
-        InferenceGetDetectResult(pDeepInstance, frame, detBoxs, masks);
+        InferenceGetDetectResult(pDeepInstance, frame, segBoxs, masks);
         double t_detect_end = GetCurrentTimeStampMS();  
         fprintf(stdout, "detection time %.02lfms\n", t_detect_end - t_detect_start);
         total_time += t_detect_end - t_detect_start;
         std::string imagename = "image_"+std::to_string(index)+".jpg";
-        DrawInstanceSegmentResultForImage(frame, detBoxs, masks);  
+        DrawInstanceSegmentResultForImage(frame, segBoxs, masks);  
         cv::imwrite(imagename, frame);
         index++;
       }

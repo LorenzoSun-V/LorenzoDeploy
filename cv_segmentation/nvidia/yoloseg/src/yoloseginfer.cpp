@@ -49,7 +49,7 @@ ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInsta
 }
 
 //GPU推理获得检测结果
-ENUM_ERROR_CODE InferenceGetDetectResult(void* pDeepInstance, cv::Mat frame, std::vector<SegBox>& detBoxs, std::vector<cv::Mat>& masks)
+ENUM_ERROR_CODE InferenceGetDetectResult(void* pDeepInstance, cv::Mat frame, std::vector<SegBox>& segBoxs, std::vector<cv::Mat>& masks)
 {
     YOLOSegModelInstance* _instance = static_cast<YOLOSegModelInstance*>(pDeepInstance);          
     if (!_instance || !_instance->_param->bParamIsOk) {
@@ -63,7 +63,7 @@ ENUM_ERROR_CODE InferenceGetDetectResult(void* pDeepInstance, cv::Mat frame, std
         return ERR_INPUT_IMAGE_EMPTY;
     }
 
-    if (!_instance->_param->yolosegmodel.inference(frame, detBoxs, masks)){
+    if (!_instance->_param->yolosegmodel.inference(frame, segBoxs, masks)){
         return ERR_DETECT_OBJECT_EMPTY;
     }
     
@@ -72,7 +72,7 @@ ENUM_ERROR_CODE InferenceGetDetectResult(void* pDeepInstance, cv::Mat frame, std
 
 
 //多batch推理获得检测结果
-ENUM_ERROR_CODE BatchInferenceGetDetectResult(void* pDeepInstance, std::vector<cv::Mat> img_batch, std::vector<std::vector<SegBox>> &batchDetBoxs, std::vector<std::vector<cv::Mat>> &batchMasks)
+ENUM_ERROR_CODE BatchInferenceGetDetectResult(void* pDeepInstance, std::vector<cv::Mat> img_batch, std::vector<std::vector<SegBox>> &batchsegBoxs, std::vector<std::vector<cv::Mat>> &batchMasks)
 {
     YOLOSegModelInstance* _instance = static_cast<YOLOSegModelInstance*>(pDeepInstance);  
     if (!_instance || !_instance->_param->bParamIsOk) {
@@ -85,7 +85,7 @@ ENUM_ERROR_CODE BatchInferenceGetDetectResult(void* pDeepInstance, std::vector<c
         std::cout << "Invalid input frames." << std::endl;
         return ERR_INPUT_IMAGE_EMPTY;
     }
-    bool bOK = _instance->_param->yolosegmodel.batch_inference(img_batch, batchDetBoxs, batchMasks);
+    bool bOK = _instance->_param->yolosegmodel.batch_inference(img_batch, batchsegBoxs, batchMasks);
     if(!bOK)
     {
         return ERR_DETECT_OBJECT_EMPTY; 

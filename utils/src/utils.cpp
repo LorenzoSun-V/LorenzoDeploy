@@ -120,14 +120,15 @@ ENUM_ERROR_CODE DrawRectDetectResultForImage(cv::Mat &frame, std::vector<DetBox>
     return ENUM_OK;
 }  
 
-ENUM_ERROR_CODE DrawInstanceSegmentResultForImage(cv::Mat &frame, std::vector<SegBox> detBoxs, std::vector<cv::Mat> masks)
+// 在图像上绘制实例分割结果
+ENUM_ERROR_CODE DrawInstanceSegmentResultForImage(cv::Mat& frame, std::vector<SegBox> segBoxs, std::vector<cv::Mat> masks)
 {
     if (frame.empty()){
         std::cout <<  "frame is empty." << std::endl;
         return ERR_INPUT_IMAGE_EMPTY;
     }
-    if( detBoxs.empty() ){
-    	std::cout << "detBoxs is empty!" << std::endl;
+    if( segBoxs.empty() ){
+    	std::cout << "segBoxs is empty!" << std::endl;
 	    return ERR_INVALID_PARAM;
     }
     if (masks.empty()){
@@ -146,9 +147,9 @@ ENUM_ERROR_CODE DrawInstanceSegmentResultForImage(cv::Mat &frame, std::vector<Se
 	}
 
     // 画图
-    for (size_t i = 0; i < detBoxs.size(); i++)
+    for (size_t i = 0; i < segBoxs.size(); i++)
     {
-        const SegBox& obj = detBoxs[i];
+        const SegBox& obj = segBoxs[i];
         int labelID = obj.classID;
 
         auto img_mask = masks[i];
@@ -181,7 +182,7 @@ ENUM_ERROR_CODE DrawInstanceSegmentResultForImage(cv::Mat &frame, std::vector<Se
     }
 
     return ENUM_OK;
-}  
+}
 
 //ip地址正确性检查
 int CheckValidIPAddress(const std::string& ipaddr) 
@@ -411,7 +412,7 @@ std::string replaceImageOutPath(const std::string& path, std::string suffix_name
 // 判断一个点是否在多边形内
 bool isPointInPolygon(const cv::Point2f& point, const std::vector<cv::Point2f>& polygon)
 {
-    return pointPolygonTest(polygon, point, false) >= 0;
+    return cv::pointPolygonTest(polygon, point, false) >= 0;
 }
 
 // 判断一个点是否在旋转矩形内
@@ -436,52 +437,58 @@ bool isPointInRotatedRect(const cv::Point2f& point, const cv::RotatedRect& rect)
     return (abs(localX) <= halfWidth) && (abs(localY) <= halfHeight);
 }
 
-// 获取旋转矩形在多边形内所有点和交集部分的面积
-float getPointsInRotatedRectorArea(Rotates& Rotating) 
+// 获取旋转矩形与多边形交集的面积比例
+float computeRotationBoxAreaRatio(const cv::RotatedRect& rotatedRect, const std::vector<cv::Point2f>& polygon) 
 {
-    cv::Rect boundingBox = Rotating.rotatedRect.boundingRect();
+    // 获取旋转矩形的外接矩形
+    cv::Rect boundingBox = rotatedRect.boundingRect();
 
+    // 存储旋转矩形内的点
+    std::vector<cv::Point2f> pointsInRotatedRect;
+
+    // 遍历旋转矩形的外接矩形内的所有点
     for (int y = boundingBox.y; y < boundingBox.y + boundingBox.height; y++) {
         for (int x = boundingBox.x; x < boundingBox.x + boundingBox.width; x++) {
-            if (x >= 0 && x < Rotating.width && y >= 0 && y < Rotating.height) 
-            {
-                if (isPointInRotatedRect(cv::Point2f(x, y), Rotating.rotatedRect)) 
-                {
-                    Rotating.points.emplace_back(x, y);
-                }
+            cv::Point2f point(x, y);
+            // 判断点是否在旋转矩形内
+            if (isPointInRotatedRect(point, rotatedRect)) {
+                pointsInRotatedRect.push_back(point);
             }
         }
     }
 
+    // 计算交集区域的点数
     float intersectionArea = 0.0f;
-    for (const auto& pt : Rotating.points) {
-        if (isPointInPolygon(cv::Point2f(pt.x, pt.y), Rotating.polygon)) {
-            intersectionArea += 1.0f; // 计算交集区域的点数
-            Rotating.pointsInPolygon.push_back(pt); // 把点坐标顺便记下来.
+    for (const auto& pt : pointsInRotatedRect) {
+        // 判断点是否在多边形内
+        if (isPointInPolygon(pt, polygon)) {
+            intersectionArea += 1.0f; // 交集区域的点数
         }
     }
-    float rectArea = Rotating.size.width * Rotating.size.height;
+
+    // 计算旋转矩形的面积
+    float rectArea = rotatedRect.size.width * rotatedRect.size.height;
+
+    // 计算交集面积占旋转矩形的面积比例
     float intersectionPercentage = (intersectionArea / rectArea) * 100.0f;
 
     return intersectionPercentage;
 }
 
 // 绘制多边形和旋转矩形
-void drawAndSaveTemperatureMap(const Rotates& Rotating, const std::string& filename) 
+void drawAndSaveTemperatureMap(const std::vector<cv::Point2f>& pointsInRect, 
+                                const std::vector<cv::Point2f>& polygon, 
+                                const std::string& filename) 
 {
     // 创建一个临时Mat
     cv::Mat colorMap(288, 384, CV_8UC3, cv::Scalar(128, 128, 128));
 
-    for (const auto& pt : Rotating.points) {
+    for (const auto& pt : pointsInRect) {
         colorMap.at<cv::Vec3b>(pt.y, pt.x) = cv::Vec3b(0, 255, 255); // 黄色
     }
 
-    for (const auto& pt : Rotating.pointsInPolygon) {
-        colorMap.at<cv::Vec3b>(pt.y, pt.x) = cv::Vec3b(255, 0, 0); // 蓝色
-    }
-
-    for (size_t i = 0; i < Rotating.polygon.size(); i++) {
-        line(colorMap, Rotating.polygon[i], Rotating.polygon[(i + 1) % Rotating.polygon.size()], cv::Scalar(0, 255, 0), 2); // 绿色
+    for (size_t i = 0; i < polygon.size(); i++) {
+        line(colorMap, polygon[i], polygon[(i + 1) % polygon.size()], cv::Scalar(0, 255, 0), 2); // 绿色
     }
 
     imwrite(filename, colorMap);

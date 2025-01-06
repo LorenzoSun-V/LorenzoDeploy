@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-26 08:51:19
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2025-01-06 09:42:19
+ * @LastEditTime: 2025-01-06 11:37:31
  * @Description: 
  */
 #ifndef YOLOSegModel_H
@@ -54,19 +54,19 @@ private:
     trt_param_t m_trt;
     model_param_t m_model;
     
-    bool yolov8;  // 是否是 YOLOv8 模型，true为 YOLOv8，false为 YOLOv5，两种模型的输出内容不同
+    bool m_buseyolov8;  // 是否是 YOLOv8 模型，true为 YOLOv8，false为 YOLOv5，两种模型的输出内容不同
     
-    float* gpu_input_data;
-    float* gpu_det_output_data;
-    float* gpu_seg_output_data;
+    float* gpu_input_data;                    // GPU输入数据地址
+    float* gpu_det_output_data;               // GPU检测输出数据地址
+    float* gpu_seg_output_data;               // GPU分割输出数据地址
     
-    std::vector<float> cpu_input_data;
-    std::vector<float> cpu_det_output_data;
-    std::vector<float> cpu_seg_output_data;
+    std::vector<float> cpu_input_data;        // CPU输入数据
+    std::vector<float> cpu_det_output_data;   // CPU检测输出数据
+    std::vector<float> cpu_seg_output_data;   // CPU分割输出数据
 
-    int m_kDetOutputSize;
-    int m_kSegOutputSize;
-    int kMaxInputImageSize;
+    int m_kDetOutputSize;                     // 检测头输出大小， batch_size * num_bboxes * bbox_element
+    int m_kSegOutputSize;                     // 分割头输出大小， batch_size * seg_output * seg_output_height * seg_output_width
+    int kMaxInputImageSize;                   // 输入图片最大尺寸
 };
 
 #endif // YOLOSegModel_H

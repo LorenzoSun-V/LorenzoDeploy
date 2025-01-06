@@ -2,7 +2,7 @@
  * @Description: 集成视觉相关小功能模块
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2025-01-06 10:13:59
+ * @LastEditTime: 2025-01-06 13:10:22
  */
 #pragma once
 
@@ -11,22 +11,6 @@
 
 extern "C"
 {
-    struct Rotates
-    {
-        cv::Point2f center; // 旋转矩阵中心点X,Y
-        cv::Size2f size; // 旋转矩阵宽高W,H
-        cv::RotatedRect rotatedRect; // 传入(center, size, angle)
-
-        float radian = 0.0; // 传入的弧度
-        float angle = 0.0; // 计算出角度
-        int width, height; // 图像宽高
-
-        std::vector<cv::Point2f> polygon; // 多边形的四个顶点
-        std::vector<cv::Point> pointsInPolygon; // 存储监测区域内旋转矩形的所有点
-
-        std::vector<cv::Point> points; // 旋转矩阵所有坐标点
-    };
-
     /*
      * @brief 图片处理接口
      *
@@ -51,19 +35,6 @@ extern "C"
 	ENUM_ERROR_CODE DrawRectDetectResultForImage(
 	    cv::Mat &frame,
         std::vector<DetBox> detBoxs
-    );   
-
-    /*
-     * @brief 标记识别框，绘制旋转矩形框
-     *	   
-     * @param   frame                   输入检测图片/返回结果帧 
-     * @param   detBoxs                 输入检测框结果       
-     * 
-     * @return  ENUM_ERROR_CODE         返回错误码
-     */
-    void DrawRotatedRectForImage(
-        cv::Mat &image, 
-        const std::vector<DetBox> detBoxs
     );
 
     /*
@@ -76,8 +47,21 @@ extern "C"
      */
     ENUM_ERROR_CODE DrawInstanceSegmentResultForImage(
         cv::Mat &frame, 
-        std::vector<SegBox> detBoxs,
+        std::vector<SegBox> segBoxs,
         std::vector<cv::Mat> masks
+    );
+
+    /*
+     * @brief 标记识别框，绘制旋转矩形框
+     *	   
+     * @param   frame                   输入检测图片/返回结果帧 
+     * @param   detBoxs                 输入检测框结果       
+     * 
+     * @return  ENUM_ERROR_CODE         返回错误码
+     */
+    void DrawRotatedRectForImage(
+        cv::Mat &image, 
+        const std::vector<DetBox> detBoxs
     );
 
      /*
@@ -194,21 +178,24 @@ extern "C"
     std::string replaceImageOutPath(const std::string& path, std::string suffix_name);
 
     /**
-     * 获取旋转矩形内的所有像素点和交集部分的面积
-     * @param Rotating 旋转矩形结构体
-     * @return 交集部分占比包含旋转矩形在多边形内所有像素点的集合
+     * 获取旋转矩形内的所有像素点和交集部分的面积比例
+     * @param rotatedRect 存储旋转矩形所有信息 示例：cv::RotatedRect rotatedRect(cv::Point2f(x, y), cv::Size2f(w, h), angle);  // 旋转矩形 (中心，尺寸，角度)
+     * @param polygon 多边形所有顶点，按照顺时针或逆时针顺序传入顶点  示例：std::vector<cv::Point2f> polygon = {cv::Point2f(1, 1), cv::Point2f(2, 2), cv::Point2f(3, 3), 
+     *                                                                                                      cv::Point2f(4, 4), cv::Point2f(5, 5)};
+     * @return 旋转矩形框与多边形交集部分占比
      */
-    float getPointsInRotatedRectorArea(Rotates& Rotating);
+    float computeRotationBoxAreaRatio(const cv::RotatedRect& rotatedRect, 
+                                    const std::vector<cv::Point2f>& polygon);
 
     /**
      * 绘制多边形和旋转矩形，并保存图像
-     * @param Rotating 旋转矩形结构体
+     * @param pointsInRect 存储旋转矩形所有点
+     * @param polygon 多边形所有点
      * @param filename 保存图片的文件名
      */
-    void drawAndSaveTemperatureMap(
-        const Rotates& Rotating,
-        const std::string& filename
-    );
+    void drawAndSaveTemperatureMap(const std::vector<cv::Point2f>& pointsInRect, 
+                                    const std::vector<cv::Point2f>& polygon, 
+                                    const std::string& filename);
 
     /**
      * 获取旋转矩形在多边形内区域的最大温度

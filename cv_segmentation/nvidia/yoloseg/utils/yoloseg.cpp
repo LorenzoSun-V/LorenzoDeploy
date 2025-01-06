@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-26 08:51:12
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2025-01-06 10:03:57
+ * @LastEditTime: 2025-01-06 11:46:27
  * @Description: 
  */
 #include "yoloseg.h"
@@ -89,7 +89,7 @@ bool YOLOSegModel::loadModel(const std::string engine_name, bool bUseYOLOv8) {
         std::cerr << "Please input correct network model." << std::endl;
         return false;
     }
-    yolov8 = bUseYOLOv8;
+    m_buseyolov8 = bUseYOLOv8;
     //input     
     auto inputDims = m_trt.engine->getBindingDimensions(0);
     m_model.batch_size = inputDims.d[0];
@@ -115,7 +115,7 @@ bool YOLOSegModel::loadModel(const std::string engine_name, bool bUseYOLOv8) {
     // yolov5: out_dims_det: [1, 25200, 117], 第三维度是117（85+32），其中前面85字段包括四个坐标属性（cx、cy、w、h）、一个confidence和80个类别分数，后面32个字段是每个检测框的mask系数。
     // yolov8: out_dims_det: [1, 8400, 116], 第三维度是116（84+32），其中前面84字段包括四个坐标属性（cx、cy、w、h）和80个类别分数，后面32个字段是每个检测框的mask系数。
     auto out_dims_det = m_trt.engine->getBindingDimensions(2);
-    if (yolov8) {
+    if (m_buseyolov8) {
         m_model.num_classes = out_dims_det.d[2] - 32 - 4;
     } else {
         m_model.num_classes = out_dims_det.d[2] - 32 - 5;
@@ -144,24 +144,23 @@ bool YOLOSegModel::loadModel(const std::string engine_name, bool bUseYOLOv8) {
 
     // allocate memory for det output
     m_kDetOutputSize = m_model.batch_size * m_model.num_bboxes * m_model.bbox_element;
-    if (cudaMalloc(&gpu_det_output_data, m_kDetOutputSize * sizeof(float)) != cudaSuccess) {
-        std::cerr << "CUDA malloc failed for det data." << std::endl;
+    err = cudaMalloc(&gpu_det_output_data, m_kDetOutputSize * sizeof(float));
+    if ( err != cudaSuccess) {
+        std::cerr << "CUDA malloc failed for det data." << cudaGetErrorString(err) << std::endl;
         return false;
     }
 
     // allocate memory for seg output
     m_kSegOutputSize = m_model.batch_size * m_model.seg_output * m_model.seg_output_height * m_model.seg_output_width;
-    if (cudaMalloc(&gpu_seg_output_data, m_kSegOutputSize * sizeof(float)) != cudaSuccess) {
-        std::cerr << "CUDA malloc failed for seg data." << std::endl;
+    err = cudaMalloc(&gpu_seg_output_data, m_kSegOutputSize * sizeof(float));
+    if ( err != cudaSuccess) {
+        std::cerr << "CUDA malloc failed for seg data." << cudaGetErrorString(err) << std::endl;
         return false;
     }
-    // check the output size
-    std::cout << "Det Output Size: " << m_kDetOutputSize << std::endl;
-    std::cout << "Seg Output Size: " << m_kSegOutputSize << std::endl;
 
+    // check the output size
     cpu_det_output_data.resize(m_kDetOutputSize);
     cpu_seg_output_data.resize(m_kSegOutputSize);
-
     std::cout << "[Alloc] DetOutputSize=" << m_kDetOutputSize
               << ", SegOutputSize="       << m_kSegOutputSize << std::endl;
 
@@ -170,6 +169,10 @@ bool YOLOSegModel::loadModel(const std::string engine_name, bool bUseYOLOv8) {
 
 bool YOLOSegModel::doInference(std::vector<cv::Mat> img_batch) 
 {
+    if (img_batch.empty()) {
+        std::cerr << "Input images data is empty." << std::endl;
+        return false;
+    }
     // 1) preprocess and copy input to GPU
     cuda_batch_preprocess(img_batch, gpu_input_data, m_model.input_width, m_model.input_height, m_trt.stream);
     // 2) bind input and output buffers
@@ -222,7 +225,7 @@ bool YOLOSegModel::inference(cv::Mat frame, std::vector<SegBox>& result, std::ve
     std::vector<std::vector<SegBox>> batch_det_result;
     std::vector<std::vector<cv::Mat>> batch_seg_result;
     
-    batch_nms(batch_size_bboxes, cpu_det_output_data.data(), m_model, yolov8);
+    batch_nms(batch_size_bboxes, cpu_det_output_data.data(), m_model, m_buseyolov8);
     batch_process_mask(cpu_seg_output_data.data(), m_kSegOutputSize / m_model.batch_size, batch_size_bboxes, batch_size_masks, m_model);
     bool bres = postprocess_batch(batch_size_bboxes, batch_size_masks, batch_images, m_model.input_width, m_model.input_height, batch_det_result, batch_seg_result);
     if( !bres ) {
@@ -259,7 +262,7 @@ bool YOLOSegModel::batch_inference(std::vector<cv::Mat> batch_images, std::vecto
         std::vector<std::vector<cv::Mat>> batch_size_masks;
 
         // NMS 处理
-        batch_nms(batch_size_bboxes, cpu_det_output_data.data(), m_model, yolov8);
+        batch_nms(batch_size_bboxes, cpu_det_output_data.data(), m_model, m_buseyolov8);
         std::cout << "NMS done." << std::endl;
         // Mask 生成
         batch_process_mask(cpu_seg_output_data.data(), 
