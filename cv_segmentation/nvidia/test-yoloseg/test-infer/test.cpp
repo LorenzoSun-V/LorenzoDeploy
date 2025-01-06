@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-26 09:14:21
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-12-30 11:55:26
+ * @LastEditTime: 2025-01-06 09:48:58
  * @Description: 
  */
 #include <string>
@@ -25,23 +25,24 @@ std::string getBaseFileName(const std::string& path) {
 
 int main(int argc, char* argv[])
 {
-    if(argc < 2) {
-        std::cout<<"example: ./binary image_folder .bin"<<std::endl;
+    if(argc < 3) {
+        std::cout<<"example: ./binary image_folder .bin 0"<<std::endl;
         exit(-1);
     }
 
     const char* pimagedir = argv[1];
     const char* pWeightsfile = argv[2];
+    bool bUseYOLOv8 = std::string(argv[3]) == "1";
     
     if(pimagedir == NULL || pWeightsfile == NULL){
         std::cout<<"input param error!"<<std::endl;
         return -1;
     }
     
-    void * pDNNInstance= NULL; 
-    ENUM_ERROR_CODE eOK = LoadDeepModelModules(pWeightsfile, &pDNNInstance);
+    void * pDeepInstance= NULL; 
+    ENUM_ERROR_CODE eOK = LoadDeepModelModules(pWeightsfile, &pDeepInstance, bUseYOLOv8);
     if(eOK != ENUM_OK){
-        std::cout<<"can not get pDNNInstance!"<<std::endl;
+        std::cout<<"can not get pDeepInstance!"<<std::endl;
         return -1;
     } 
     std::cout<<"Init Finshed!"<<std::endl;  
@@ -64,7 +65,7 @@ int main(int argc, char* argv[])
     {
         detBoxs.clear();
         double t_detect_start = GetCurrentTimeStampMS();
-        InferenceGetDetectResult(pDNNInstance, frame, detBoxs, masks);
+        InferenceGetDetectResult(pDeepInstance, frame, detBoxs, masks);
         double t_detect_end = GetCurrentTimeStampMS();  
         fprintf(stdout, "detection time %.02lfms\n", t_detect_end - t_detect_start);
         total_time += t_detect_end - t_detect_start;
@@ -74,7 +75,7 @@ int main(int argc, char* argv[])
         index++;
       }
 
-    DestoryDeepmodeInstance(&pDNNInstance);	  
+    DestoryDeepmodeInstance(&pDeepInstance);	  
     std::cout << "Total detection time: " << total_time << "ms" << std::endl;
     std::cout << "Average fps: " << frame_num / total_time * 1000 << std::endl;         
     std::cout << "Finish !"<<std::endl;

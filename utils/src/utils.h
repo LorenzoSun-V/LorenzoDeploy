@@ -2,7 +2,7 @@
  * @Description: 集成视觉相关小功能模块
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-12-27 16:30:28
+ * @LastEditTime: 2025-01-06 10:13:59
  */
 #pragma once
 

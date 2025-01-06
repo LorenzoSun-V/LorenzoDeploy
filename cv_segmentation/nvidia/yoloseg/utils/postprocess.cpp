@@ -175,7 +175,7 @@ bool postprocess_batch(
     batch_masks_result.reserve(batch_bboxes.size());
 
     // traverse each image and its corresponding bboxes
-    for (size_t batch_idx = 0; batch_idx < batch_bboxes.size(); ++batch_idx) {
+    for (size_t batch_idx = 0; batch_idx < batch_bboxes.size() && batch_idx < batch_images.size(); ++batch_idx) {
 
         // avoid copying by using const reference
         const auto& bboxes = batch_bboxes[batch_idx];
@@ -267,21 +267,41 @@ static cv::Rect get_downscale_rect(const InstanceSegResult bbox, float scale) {
     );
 }
 
-void process_mask(const float* proto, int proto_size, std::vector<InstanceSegResult>& dets, std::vector<cv::Mat>& masks, model_param_t model_param) {
-    for (size_t i = 0; i < dets.size(); i++) {
-        cv::Mat mask_mat = cv::Mat::zeros(model_param.seg_output_height, model_param.seg_output_width, CV_32FC1);
-        auto r = get_downscale_rect(dets[i], 4);
-        for (int x = r.x; x < r.x + r.width; x++) {
-            for (int y = r.y; y < r.y + r.height; y++) {
-                float e = 0.0f;
-                for (int j = 0; j < 32; j++) {
-                    e += dets[i].mask[j] * proto[j * proto_size / 32 + y * mask_mat.cols + x];
+void batch_process_mask(
+    const float* proto, 
+    int proto_size, 
+    const std::vector<std::vector<InstanceSegResult>>& batch_dets, 
+    std::vector<std::vector<cv::Mat>>& batch_masks, 
+    const model_param_t& model_param) 
+{
+    batch_masks.clear();
+
+    // offset of proto for each batch
+    size_t batch_seg_output_size = model_param.seg_output * model_param.seg_output_height * model_param.seg_output_width;
+
+    // traverse each batch
+    for (size_t batch_idx = 0; batch_idx < batch_dets.size(); batch_idx++) {
+        // offset of proto for the current batch
+        const float* proto_offset = proto + batch_idx * batch_seg_output_size;
+        // used to save masks for the current batch
+        std::vector<cv::Mat> masks_for_batch;
+        // traverse each detection box in the current batch
+        for (const auto& det : batch_dets[batch_idx]) {
+            cv::Mat mask_mat = cv::Mat::zeros(model_param.seg_output_height, model_param.seg_output_width, CV_32FC1);
+            auto r = get_downscale_rect(det, 4);
+            for (int x = r.x; x < r.x + r.width; x++) {
+                for (int y = r.y; y < r.y + r.height; y++) {
+                    float e = 0.0f;
+                    for (int j = 0; j < 32; j++) {
+                        e += det.mask[j] * proto_offset[j * proto_size / 32 + y * mask_mat.cols + x];
+                    }
+                    e = 1.0f / (1.0f + expf(-e));
+                    mask_mat.at<float>(y, x) = e;
                 }
-                e = 1.0f / (1.0f + expf(-e));
-                mask_mat.at<float>(y, x) = e;
             }
+            cv::resize(mask_mat, mask_mat, cv::Size(model_param.input_width, model_param.input_height));
+            masks_for_batch.push_back(mask_mat);
         }
-        cv::resize(mask_mat, mask_mat, cv::Size(model_param.input_width, model_param.input_height));
-        masks.push_back(mask_mat);
+        batch_masks.push_back(std::move(masks_for_batch));
     }
 }

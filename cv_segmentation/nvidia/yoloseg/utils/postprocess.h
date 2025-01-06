@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-27 14:28:30
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-12-30 15:21:25
+ * @LastEditTime: 2025-01-06 09:10:58
  * @Description: 
  */
 #pragma once
@@ -14,7 +14,7 @@ struct InstanceSegResult {
     float center_x, center_y, w, h; // 中心点坐标 (x, y), 宽度 w, 高度 h
     float score;             // 置信度分数
     int class_id;            // 类别 ID
-    float mask[32];
+    float mask[32];          // mask系数
 };
 
 typedef struct {
@@ -38,12 +38,12 @@ void batch_nms(
     model_param_t model_param, 
     bool yolov8);
 
-void process_mask(
+void batch_process_mask(
     const float* proto, 
     int proto_size, 
-    std::vector<InstanceSegResult>& dets, 
-    std::vector<cv::Mat>& masks, 
-    model_param_t model_param);
+    const std::vector<std::vector<InstanceSegResult>>& batch_dets, 
+    std::vector<std::vector<cv::Mat>>& batch_masks, 
+    const model_param_t& model_param);
 
 bool postprocess_batch(
     const std::vector<std::vector<InstanceSegResult>>& batch_bboxes,

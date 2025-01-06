@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-26 08:51:35
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-12-30 15:52:08
+ * @LastEditTime: 2025-01-06 09:43:42
  * @Description: 
  */
 #pragma once
@@ -20,12 +20,14 @@ extern "C"
      * @param  pWeightsfile           输入模型权重文件
      * @param  kBatchSize             模型图片推理数量
      * @param  pDeepInstance          返回输入视句柄指针
+     * @param  bUseYOLOv8             是否使用YOLOv8模型
      * @return ENUM_ERROR_CODE        返回错误码     
      */
      
     ENUM_ERROR_CODE LoadDeepModelModules(
         const char* pWeightsfile,
-        void** pDeepInstance 
+        void** pDeepInstance,
+        bool bUseYOLOv8
     );                                 
          
       /*
@@ -34,7 +36,6 @@ extern "C"
      * @param  pDeepInstance         传入模型句柄
      * @param  frame                 输入检测图片  
      * @param  detBoxs               返回检测框
-     *
      * @return  ENUM_ERROR_CODE      返回错误码
      */
     ENUM_ERROR_CODE InferenceGetDetectResult(
@@ -59,7 +60,7 @@ extern "C"
         std::vector<cv::Mat> batchframes,
         std::vector<std::vector<SegBox>>& batchDetBoxs,
         std::vector<std::vector<cv::Mat>>& batchMasks
-    );  
+    );
      
    /*
     * @brief 销毁句柄

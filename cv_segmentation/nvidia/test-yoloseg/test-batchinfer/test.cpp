@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-30 15:35:12
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-12-30 16:34:01
+ * @LastEditTime: 2025-01-06 09:48:55
  * @Description: YOLO instance segmentation model batch inference
  */
 
@@ -26,13 +26,14 @@ std::string getBaseFileName(const std::string& path) {
 
 int main(int argc, char* argv[])
 {
-    if(argc < 2) {
-        std::cout<<"example: ./binary image_folder .engine"<<std::endl;
+    if(argc < 3) {
+        std::cout<<"example: ./binary image_folder .bin 0"<<std::endl;
         exit(-1);
     }
 
     const char* pimagedir = argv[1];
     const char* pWeightsfile = argv[2];
+    bool bUseYOLOv8 = std::string(argv[3]) == "1";
 
     if(pimagedir == NULL || pWeightsfile == NULL) {
         std::cout<<"input param error!"<<std::endl;
@@ -49,13 +50,13 @@ int main(int argc, char* argv[])
     }
 
     void * pDeepInstance= NULL; 
-    ENUM_ERROR_CODE eOK = LoadDeepModelModules(pWeightsfile, &pDeepInstance);
+    ENUM_ERROR_CODE eOK = LoadDeepModelModules(pWeightsfile, &pDeepInstance, bUseYOLOv8);
     if(eOK != ENUM_OK) {
         std::cout<<"can not get pDeepInstance!"<<std::endl;
         return -1;
     } 
-    std::cout<<"Init Finshed!"<<std::endl;  
-    
+    std::cout<<"Init Finshed!"<<std::endl;
+
     std::vector<std::vector<SegBox>> batchdetBoxs;
     std::vector<std::vector<cv::Mat>> batchmasks;
     double t_detect_start = GetCurrentTimeStampMS();

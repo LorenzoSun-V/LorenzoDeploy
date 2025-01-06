@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-26 08:51:19
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-12-30 14:53:35
+ * @LastEditTime: 2025-01-06 09:42:19
  * @Description: 
  */
 #ifndef YOLOSegModel_H
@@ -43,10 +43,9 @@ class YOLOSegModel
 public:
     YOLOSegModel();
     ~YOLOSegModel();
-    void setYOLOv8Flag(bool enable);
-    bool loadModel(const std::string engine_name);
+    bool loadModel(const std::string engine_name, bool bUseYOLOv8);
     bool inference(cv::Mat frame, std::vector<SegBox>& result, std::vector<cv::Mat>& masks);
-    bool batch_inferenece(std::vector<cv::Mat> batch_images, std::vector<std::vector<SegBox>>& batch_result, std::vector<std::vector<cv::Mat>>& batch_masks);
+    bool batch_inference(std::vector<cv::Mat> batch_images, std::vector<std::vector<SegBox>>& batch_result, std::vector<std::vector<cv::Mat>>& batch_masks);
 
 private:
     bool deserializeEngine(const std::string engine_name);

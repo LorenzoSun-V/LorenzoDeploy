@@ -23,7 +23,7 @@ public:
     }
 };
 
-ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInstance)
+ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInstance, bool bUseYOLOv8)
 {   
     if (pWeightsfile == NULL)
     {
@@ -37,7 +37,7 @@ ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInsta
         return ERR_NO_FREE_MEMORY;
     }
 
-    bool bOK = _instance->_param->yolosegmodel.loadModel(pWeightsfile);
+    bool bOK = _instance->_param->yolosegmodel.loadModel(pWeightsfile, bUseYOLOv8);
     if( !bOK ) {
         delete _instance;
         pDeepInstance = NULL;
@@ -85,15 +85,14 @@ ENUM_ERROR_CODE BatchInferenceGetDetectResult(void* pDeepInstance, std::vector<c
         std::cout << "Invalid input frames." << std::endl;
         return ERR_INPUT_IMAGE_EMPTY;
     }
-    bool bOK = _instance->_param->yolosegmodel.batch_inferenece(img_batch, batchDetBoxs, batchMasks);
+    bool bOK = _instance->_param->yolosegmodel.batch_inference(img_batch, batchDetBoxs, batchMasks);
     if(!bOK)
     {
         return ERR_DETECT_OBJECT_EMPTY; 
     }
     return ENUM_OK;
-}  
+}
 
-  
 ENUM_ERROR_CODE DestoryDeepmodeInstance( void **pDeepInstance)
 {
     YOLOSegModelInstance* _instance = static_cast<YOLOSegModelInstance*>(*pDeepInstance);  	 

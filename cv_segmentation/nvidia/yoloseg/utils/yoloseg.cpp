@@ -2,14 +2,13 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-26 08:51:12
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-12-30 16:35:41
+ * @LastEditTime: 2025-01-06 10:03:57
  * @Description: 
  */
 #include "yoloseg.h"
 
-YOLOSegModel::YOLOSegModel()
-    : m_trt{ Logger(),  nullptr, nullptr, nullptr, nullptr}, 
-    yolov8(true),
+YOLOSegModel::YOLOSegModel(): 
+    m_trt{ Logger(),  nullptr, nullptr, nullptr, nullptr}, 
     m_kDetOutputSize(0),  
     m_kSegOutputSize(0),  
     kMaxInputImageSize(9000 * 9000),
@@ -29,11 +28,6 @@ YOLOSegModel::~YOLOSegModel()
     if (m_trt.stream)          { cudaStreamDestroy(m_trt.stream);  m_trt.stream = nullptr; }
 
     cuda_preprocess_destroy();
-}
-
-// set if use YOLOv8 
-void YOLOSegModel::setYOLOv8Flag(bool enable){
-    yolov8 = enable;
 }
 
 // deserialize the engine from file
@@ -80,7 +74,7 @@ bool YOLOSegModel::deserializeEngine(const std::string engine_name)
 }
 
 // Load the model from the serialized engine file
-bool YOLOSegModel::loadModel(const std::string engine_name) {
+bool YOLOSegModel::loadModel(const std::string engine_name, bool bUseYOLOv8) {
     struct stat buffer;
     if (stat(engine_name.c_str(), &buffer) != 0) {
         std::cerr << "Error: File " << engine_name << " does not exist!" << std::endl;
@@ -95,6 +89,7 @@ bool YOLOSegModel::loadModel(const std::string engine_name) {
         std::cerr << "Please input correct network model." << std::endl;
         return false;
     }
+    yolov8 = bUseYOLOv8;
     //input     
     auto inputDims = m_trt.engine->getBindingDimensions(0);
     m_model.batch_size = inputDims.d[0];
@@ -224,18 +219,11 @@ bool YOLOSegModel::inference(cv::Mat frame, std::vector<SegBox>& result, std::ve
 
     std::vector<std::vector<InstanceSegResult>> batch_size_bboxes;
     std::vector<std::vector<cv::Mat>> batch_size_masks;
-
     std::vector<std::vector<SegBox>> batch_det_result;
     std::vector<std::vector<cv::Mat>> batch_seg_result;
     
     batch_nms(batch_size_bboxes, cpu_det_output_data.data(), m_model, yolov8);
-    for (size_t i = 0; i < m_model.batch_size; i++) {
-        std::vector<InstanceSegResult> dets = batch_size_bboxes[i];
-        std::vector<cv::Mat> batch_masks;
-        process_mask(cpu_seg_output_data.data(), m_kSegOutputSize, dets, batch_masks, m_model);
-        batch_size_masks.push_back(batch_masks);
-    }
-    
+    batch_process_mask(cpu_seg_output_data.data(), m_kSegOutputSize / m_model.batch_size, batch_size_bboxes, batch_size_masks, m_model);
     bool bres = postprocess_batch(batch_size_bboxes, batch_size_masks, batch_images, m_model.input_width, m_model.input_height, batch_det_result, batch_seg_result);
     if( !bres ) {
         return false;
@@ -245,40 +233,68 @@ bool YOLOSegModel::inference(cv::Mat frame, std::vector<SegBox>& result, std::ve
     return true;
 }
 
-bool YOLOSegModel::batch_inferenece(std::vector<cv::Mat> batch_images, std::vector<std::vector<SegBox>>& batch_result, std::vector<std::vector<cv::Mat>>& batch_masks) 
+bool YOLOSegModel::batch_inference(std::vector<cv::Mat> batch_images, std::vector<std::vector<SegBox>>& batch_result, std::vector<std::vector<cv::Mat>>& batch_masks) 
 {
-    if(batch_images.empty() ) {
+    if (batch_images.empty()) {
         std::cerr << "Input images data is empty." << std::endl;
         return false;
     }
 
-    for (size_t i = 0; i < batch_images.size(); i += m_model.batch_size){
-        std::vector<cv::Mat> img_batch;
-        for (size_t j = i; j < i + m_model.batch_size && j < batch_images.size(); j++) {
-            img_batch.emplace_back(batch_images[j]);
-        }
+    std::cout << "Total images: " << batch_images.size() << std::endl;
+
+    // 按批次处理
+    for (size_t i = 0; i < batch_images.size(); i += m_model.batch_size) {
+        std::vector<cv::Mat> img_batch(batch_images.begin() + i, 
+                                       batch_images.begin() + std::min(i + m_model.batch_size, batch_images.size()));
+
+        std::cout << "Processing batch: " << img_batch.size() << " images" << std::endl;
 
         if (!doInference(img_batch)) {
             return false;
         }
+        std::cout << "Inference done." << std::endl;
 
+        // 存储当前批次的结果
         std::vector<std::vector<InstanceSegResult>> batch_size_bboxes;
         std::vector<std::vector<cv::Mat>> batch_size_masks;
 
+        // NMS 处理
         batch_nms(batch_size_bboxes, cpu_det_output_data.data(), m_model, yolov8);
-        for (size_t j = 0; j < m_model.batch_size; j++) {
-            std::vector<InstanceSegResult> dets = batch_size_bboxes[j];
-            std::vector<cv::Mat> batch_mask;
-            size_t offset = j * m_model.seg_output * m_model.seg_output_height * m_model.seg_output_width;
-            process_mask(cpu_seg_output_data.data() + offset, m_kSegOutputSize / m_model.batch_size, dets, batch_mask, m_model);
-            batch_size_masks.push_back(batch_mask);
-        }
+        std::cout << "NMS done." << std::endl;
+        // Mask 生成
+        batch_process_mask(cpu_seg_output_data.data(), 
+                           m_kSegOutputSize / m_model.batch_size, 
+                           batch_size_bboxes, 
+                           batch_size_masks, 
+                           m_model);
+        std::cout << "Mask done." << std::endl;
 
-        bool bres = postprocess_batch(batch_size_bboxes, batch_size_masks, img_batch, m_model.input_width, m_model.input_height, batch_result, batch_masks);
-        if( !bres ) {
+        // 后处理
+        std::vector<std::vector<SegBox>> batch_det_result;
+        std::vector<std::vector<cv::Mat>> batch_seg_result;
+
+        bool bres = postprocess_batch(batch_size_bboxes, 
+                                      batch_size_masks, 
+                                      img_batch, 
+                                      m_model.input_width, 
+                                      m_model.input_height, 
+                                      batch_det_result, 
+                                      batch_seg_result);
+        if (!bres) {
             return false;
         }
-    
+
+        // 将当前批次的结果追加到总结果中
+        for (size_t j = 0; j < batch_det_result.size(); j++) {
+            std::cout << "Batch " << (i / m_model.batch_size) + 1 
+                      << ", Image " << j + 1 
+                      << ": Detected " << batch_det_result[j].size() 
+                      << " objects, Masks " << batch_seg_result[j].size() 
+                      << std::endl;
+
+            batch_result.push_back(std::move(batch_det_result[j]));
+            batch_masks.push_back(std::move(batch_seg_result[j]));
+        }
     }
 
     return true;
