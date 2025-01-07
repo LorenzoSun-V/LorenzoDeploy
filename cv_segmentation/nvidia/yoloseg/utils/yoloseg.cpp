@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-26 08:51:12
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2025-01-06 11:46:27
+ * @LastEditTime: 2025-01-06 17:58:51
  * @Description: 
  */
 #include "yoloseg.h"
@@ -44,6 +44,10 @@ bool YOLOSegModel::deserializeEngine(const std::string engine_name)
     file.seekg(0, file.beg);
 
     char* serialized_engine = new char[size];
+    if (nullptr == serialized_engine) {
+        std::cerr << "Failed to allocate memory for serialized engine." << std::endl;
+        return false;
+    }
     file.read(serialized_engine, size);
     file.close();
 
@@ -205,12 +209,7 @@ bool YOLOSegModel::doInference(std::vector<cv::Mat> img_batch)
 bool YOLOSegModel::inference(cv::Mat frame, std::vector<SegBox>& result, std::vector<cv::Mat>& masks) 
 {
     if(frame.empty() ){
-        std::cerr << "Inut images data is empty." << std::endl;
-        return false;
-    }
-
-    if (frame.cols <= 0 ||frame.cols <= 0) {
-        std::cerr << "Invalid input image size: " << frame.cols << "x" << frame.cols << std::endl;
+        std::cerr << "Input images data is empty." << std::endl;
         return false;
     }
 
@@ -225,8 +224,14 @@ bool YOLOSegModel::inference(cv::Mat frame, std::vector<SegBox>& result, std::ve
     std::vector<std::vector<SegBox>> batch_det_result;
     std::vector<std::vector<cv::Mat>> batch_seg_result;
     
-    batch_nms(batch_size_bboxes, cpu_det_output_data.data(), m_model, m_buseyolov8);
-    batch_process_mask(cpu_seg_output_data.data(), m_kSegOutputSize / m_model.batch_size, batch_size_bboxes, batch_size_masks, m_model);
+    if (!batch_nms(batch_size_bboxes, cpu_det_output_data.data(), m_model, m_buseyolov8)){
+        std::cerr << "Failed to do NMS." << std::endl;
+        return false;
+    }
+    if (!batch_process_mask(cpu_seg_output_data.data(), m_kSegOutputSize / m_model.batch_size, batch_size_bboxes, batch_size_masks, m_model)){
+        std::cerr << "Failed to do mask." << std::endl;
+        return false;
+    }
     bool bres = postprocess_batch(batch_size_bboxes, batch_size_masks, batch_images, m_model.input_width, m_model.input_height, batch_det_result, batch_seg_result);
     if( !bres ) {
         return false;
@@ -262,15 +267,19 @@ bool YOLOSegModel::batch_inference(std::vector<cv::Mat> batch_images, std::vecto
         std::vector<std::vector<cv::Mat>> batch_size_masks;
 
         // NMS 处理
-        batch_nms(batch_size_bboxes, cpu_det_output_data.data(), m_model, m_buseyolov8);
-        std::cout << "NMS done." << std::endl;
+        if (!batch_nms(batch_size_bboxes, cpu_det_output_data.data(), m_model, m_buseyolov8)){
+            std::cerr << "Failed to do NMS." << std::endl;
+            return false;
+        }
         // Mask 生成
-        batch_process_mask(cpu_seg_output_data.data(), 
+        if (!batch_process_mask(cpu_seg_output_data.data(), 
                            m_kSegOutputSize / m_model.batch_size, 
                            batch_size_bboxes, 
                            batch_size_masks, 
-                           m_model);
-        std::cout << "Mask done." << std::endl;
+                           m_model)){
+            std::cerr << "Failed to do mask." << std::endl;
+            return false;
+        }
 
         // 后处理
         std::vector<std::vector<SegBox>> batch_det_result;

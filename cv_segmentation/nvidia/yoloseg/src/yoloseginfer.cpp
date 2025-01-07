@@ -23,7 +23,7 @@ public:
     }
 };
 
-ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInstance, bool bUseYOLOv8)
+ENUM_ERROR_CODE LoadInstanceSegmentModelModules(const char* pWeightsfile, void** pDeepInstance, bool bUseYOLOv8)
 {   
     if (pWeightsfile == NULL)
     {
@@ -49,11 +49,11 @@ ENUM_ERROR_CODE LoadDeepModelModules(const char* pWeightsfile, void** pDeepInsta
 }
 
 //GPU推理获得检测结果
-ENUM_ERROR_CODE InferenceGetDetectResult(void* pDeepInstance, cv::Mat frame, std::vector<SegBox>& segBoxs, std::vector<cv::Mat>& masks)
+ENUM_ERROR_CODE InferenceGetInstanceSegmentResult(void* pDeepInstance, cv::Mat frame, std::vector<SegBox>& segBoxs, std::vector<cv::Mat>& masks)
 {
     YOLOSegModelInstance* _instance = static_cast<YOLOSegModelInstance*>(pDeepInstance);          
     if (!_instance || !_instance->_param->bParamIsOk) {
-	    std::cout << "InferenceGetDetectResult pDeepInstance is NULL" << std::endl;
+	    std::cout << "InferenceGetInstanceSegmentResult pDeepInstance is NULL" << std::endl;
 	    return ERR_INPUT_INSTANCE_INVALID;
     }
 
@@ -72,11 +72,11 @@ ENUM_ERROR_CODE InferenceGetDetectResult(void* pDeepInstance, cv::Mat frame, std
 
 
 //多batch推理获得检测结果
-ENUM_ERROR_CODE BatchInferenceGetDetectResult(void* pDeepInstance, std::vector<cv::Mat> img_batch, std::vector<std::vector<SegBox>> &batchsegBoxs, std::vector<std::vector<cv::Mat>> &batchMasks)
+ENUM_ERROR_CODE BatchInferenceGetInstanceSegmentResult(void* pDeepInstance, std::vector<cv::Mat> img_batch, std::vector<std::vector<SegBox>> &batchsegBoxs, std::vector<std::vector<cv::Mat>> &batchMasks)
 {
     YOLOSegModelInstance* _instance = static_cast<YOLOSegModelInstance*>(pDeepInstance);  
     if (!_instance || !_instance->_param->bParamIsOk) {
-	    std::cout << "BatchInferenceGetDetectResult pDeepInstance is NULL" << std::endl;
+	    std::cout << "BatchInferenceGetInstanceSegmentResult pDeepInstance is NULL" << std::endl;
 	    return ERR_INPUT_INSTANCE_INVALID;
     }
     

@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-30 15:35:12
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2025-01-06 11:32:22
+ * @LastEditTime: 2025-01-06 17:41:45
  * @Description: YOLO instance segmentation model batch inference
  */
 
@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
     }
 
     void * pDeepInstance= NULL; 
-    ENUM_ERROR_CODE eOK = LoadDeepModelModules(pWeightsfile, &pDeepInstance, bUseYOLOv8);
+    ENUM_ERROR_CODE eOK = LoadInstanceSegmentModelModules(pWeightsfile, &pDeepInstance, bUseYOLOv8);
     if(eOK != ENUM_OK) {
         std::cout<<"can not get pDeepInstance!"<<std::endl;
         return -1;
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
     std::vector<std::vector<SegBox>> batchsegBoxs;
     std::vector<std::vector<cv::Mat>> batchmasks;
     double t_detect_start = GetCurrentTimeStampMS();
-    BatchInferenceGetDetectResult(pDeepInstance, frames_list, batchsegBoxs, batchmasks);
+    BatchInferenceGetInstanceSegmentResult(pDeepInstance, frames_list, batchsegBoxs, batchmasks);
     double t_detect_end = GetCurrentTimeStampMS();  
 
     fprintf(stdout, "detection time %.02lfms\n", t_detect_end - t_detect_start);

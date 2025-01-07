@@ -53,12 +53,12 @@ cv::Mat scale_mask(cv::Mat mask, cv::Mat img, int model_height, int model_width)
     return res;
 }
 
-void batch_nms(std::vector<std::vector<InstanceSegResult>>& batch_res, float* output, model_param_t model_param, bool m_buseyolov8)
+bool batch_nms(std::vector<std::vector<InstanceSegResult>>& batch_res, float* output, model_param_t model_param, bool m_buseyolov8)
 {
 
     if(nullptr == output){
         std::cerr << "output is NULL." << std::endl;
-        return ;
+        return false;
     }
 
     batch_res.resize(model_param.batch_size);
@@ -76,7 +76,7 @@ void batch_nms(std::vector<std::vector<InstanceSegResult>>& batch_res, float* ou
                 // 找到当前检测框中最高类别置信度
                 for (int c = 0; c < model_param.num_classes; ++c) {
                     float class_conf = output[(batch_idx * model_param.num_bboxes + i) * model_param.bbox_element + 4 + c]; // YOLOv8类别置信度从第5个字段开始
-                    if (class_conf > confidence) {  // YOLOv5最终的置信度是目标置信度和类别置信度的乘积
+                    if (class_conf > confidence) {  // YOLOv8置信度就是模型输出的置信度
                         confidence = class_conf;
                         class_id = c;
                     }
@@ -151,6 +151,7 @@ void batch_nms(std::vector<std::vector<InstanceSegResult>>& batch_res, float* ou
         }
 
     }
+    return true;
 }
 
 bool postprocess_batch(
@@ -205,23 +206,24 @@ bool postprocess_batch(
             continue;
         }
 
-        // calculate scale factor and padding
+        // calculate scale factor and padding，计算缩放因子和填充
         float r_w = static_cast<float>(model_width)  / image.cols;
         float r_h = static_cast<float>(model_height) / image.rows;
         float image_y_pad = (model_height - r_w * image.rows) * 0.5f;
         float image_x_pad = (model_width  - r_h * image.cols) * 0.5f;
 
-        // 2.3) traverse all detection boxes in the current batch and convert coordinates
+        // 2.3) traverse all detection boxes in the current batch and convert coordinates， 遍历当前批次的所有检测框并转换坐标
         std::vector<SegBox> detBoxForBatch;
-        detBoxForBatch.reserve(bboxes.size()); // pre-allocate space
+        detBoxForBatch.reserve(bboxes.size()); // pre-allocate space，预先分配空间
         for (const auto& box_in : bboxes)
         {
-            // top-left / bottom-right
+            // top-left / bottom-right， 坐标转换为左上角和右下角坐标
             float origin_x1 = box_in.center_x - box_in.w * 0.5f;
             float origin_y1 = box_in.center_y - box_in.h * 0.5f;
             float origin_x2 = box_in.center_x + box_in.w * 0.5f;
             float origin_y2 = box_in.center_y + box_in.h * 0.5f;
 
+            // 把坐标转换为相对于原图的坐标
             float x1, y1, x2, y2;
             if (r_h > r_w) {
                 x1 = origin_x1;
@@ -239,6 +241,7 @@ bool postprocess_batch(
                 y1 /= r_h;  y2 /= r_h;
             }
 
+            // save the converted box to detBoxForBatch，保存转换后的框到detBoxForBatch
             SegBox box_out;
             box_out.x         = x1;          // top-left x
             box_out.y         = y1;          // top-left y
@@ -275,7 +278,7 @@ static cv::Rect get_downscale_rect(const InstanceSegResult bbox, float scale) {
     );
 }
 
-void batch_process_mask(
+bool batch_process_mask(
     const float* proto, 
     int proto_size, 
     const std::vector<std::vector<InstanceSegResult>>& batch_dets, 
@@ -284,7 +287,7 @@ void batch_process_mask(
 {
     if (nullptr == proto) {
         std::cerr << "proto is NULL." << std::endl;
-        return;
+        return false;
     }
     batch_masks.clear();
 
@@ -316,4 +319,5 @@ void batch_process_mask(
         }
         batch_masks.push_back(std::move(masks_for_batch));
     }
+    return true;
 }

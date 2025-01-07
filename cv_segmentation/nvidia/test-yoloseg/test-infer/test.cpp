@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-26 09:14:21
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2025-01-06 11:32:07
+ * @LastEditTime: 2025-01-06 17:41:35
  * @Description: 
  */
 #include <string>
@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
     }
     
     void * pDeepInstance= NULL; 
-    ENUM_ERROR_CODE eOK = LoadDeepModelModules(pWeightsfile, &pDeepInstance, bUseYOLOv8);
+    ENUM_ERROR_CODE eOK = LoadInstanceSegmentModelModules(pWeightsfile, &pDeepInstance, bUseYOLOv8);
     if(eOK != ENUM_OK){
         std::cout<<"can not get pDeepInstance!"<<std::endl;
         return -1;
@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
     {
         segBoxs.clear();
         double t_detect_start = GetCurrentTimeStampMS();
-        InferenceGetDetectResult(pDeepInstance, frame, segBoxs, masks);
+        InferenceGetInstanceSegmentResult(pDeepInstance, frame, segBoxs, masks);
         double t_detect_end = GetCurrentTimeStampMS();  
         fprintf(stdout, "detection time %.02lfms\n", t_detect_end - t_detect_start);
         total_time += t_detect_end - t_detect_start;
