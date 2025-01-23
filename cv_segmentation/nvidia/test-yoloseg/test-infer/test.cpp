@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-26 09:14:21
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2025-01-06 17:41:35
+ * @LastEditTime: 2025-01-17 15:54:37
  * @Description: 
  */
 #include <string>
@@ -64,6 +64,7 @@ int main(int argc, char* argv[])
     for( auto& frame: batchframes)
     {
         segBoxs.clear();
+        masks.clear();
         double t_detect_start = GetCurrentTimeStampMS();
         InferenceGetInstanceSegmentResult(pDeepInstance, frame, segBoxs, masks);
         double t_detect_end = GetCurrentTimeStampMS();  

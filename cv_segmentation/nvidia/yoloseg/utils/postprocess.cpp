@@ -259,16 +259,41 @@ bool postprocess_batch(
     return true;
 }
 
-static cv::Rect get_downscale_rect(const InstanceSegResult bbox, float scale) {
+/**
+ * @brief Calculate the downscaled rectangle for an instance segmentation result.
+ * 
+ * This function takes an instance segmentation result, a scale factor, and the model's height and width.
+ * It calculates the downscaled rectangle by adjusting the bounding box coordinates and dimensions according to the scale factor.
+ * The resulting rectangle is then adjusted to ensure it is within the bounds of the model's dimensions.
+ * 
+ * @param bbox The instance segmentation result containing the bounding box information.
+ * @param scale The scale factor to downscale the bounding box.
+ * @param model_height The height of the model's seg output.
+ * @param model_width The width of the model's seg output.
+ * @return cv::Rect The downscaled rectangle.
+ */
+static cv::Rect get_downscale_rect(const InstanceSegResult bbox, float scale, int model_height, int model_width) {
+    // Calculate the left, top, right, and bottom coordinates of the bounding box
     float left = bbox.center_x - bbox.w / 2.0f;
     float top = bbox.center_y - bbox.h / 2.0f;
     float right = bbox.center_x + bbox.w / 2.0f;
     float bottom = bbox.center_y + bbox.h / 2.0f;
 
+    // Downscale the bounding box coordinates
     left /= scale;
     top /= scale;
     right /= scale;
     bottom /= scale;
+
+    // 确保坐标和尺寸不小于0
+    left = std::max(left, 0.0f);
+    top = std::max(top, 0.0f);
+    right = std::max(right, left);  // width >= 0
+    bottom = std::max(bottom, top); // height >= 0
+
+    // 确保框的尺寸不超出图像范围
+    right = std::min(right, float(model_width));
+    bottom = std::min(bottom, float(model_height));
 
     return cv::Rect(
         round(left),                   // top-left x
@@ -303,7 +328,7 @@ bool batch_process_mask(
         // traverse each detection box in the current batch
         for (const auto& det : batch_dets[batch_idx]) {
             cv::Mat mask_mat = cv::Mat::zeros(model_param.seg_output_height, model_param.seg_output_width, CV_32FC1);
-            auto r = get_downscale_rect(det, 4);
+            auto r = get_downscale_rect(det, 4, model_param.seg_output_height, model_param.seg_output_width);
             for (int x = r.x; x < r.x + r.width; x++) {
                 for (int y = r.y; y < r.y + r.height; y++) {
                     float e = 0.0f;

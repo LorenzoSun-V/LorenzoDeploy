@@ -8,6 +8,7 @@ build/
 fd/cfg/*
 weights/*
 test_files/*
+cv_detection/nvidia/yoloe2e/v2/python/**/*.sh
 
 # Ignore weight file extensions
 *.weights

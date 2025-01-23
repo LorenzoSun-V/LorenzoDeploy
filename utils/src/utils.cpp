@@ -377,7 +377,7 @@ std::vector<std::string> getImagePaths(const std::string& folder) {
     return imagePaths;
 } 
 
-//将图片名称后缀替换对应的文件后缀
+// 将图片名称后缀替换为txt
 std::string replaceImageExtensionWithTxt(const std::string& path) {
     std::vector<std::string> extensions = {".jpg", ".JPG", ".jpeg", ".JPEG", ".png", ".PNG", ".bmp", ".BMP"};
     std::string newPath = path;
@@ -386,6 +386,22 @@ std::string replaceImageExtensionWithTxt(const std::string& path) {
         size_t pos = newPath.rfind(ext);
         if (pos != std::string::npos && pos == newPath.length() - ext.length()) {
             newPath.replace(pos, ext.length(), ".txt");
+            break;
+        }
+    }
+
+    return newPath;
+}
+
+// 将图片名称后缀替换为对应的文件后缀
+std::string replaceImageExtensionWithSuffix(const std::string& path, const std::string& suffix) {
+    std::vector<std::string> extensions = {".jpg", ".JPG", ".jpeg", ".JPEG", ".png", ".PNG", ".bmp", ".BMP"};
+    std::string newPath = path;
+
+    for (const std::string& ext : extensions) {
+        size_t pos = newPath.rfind(ext);
+        if (pos != std::string::npos && pos == newPath.length() - ext.length()) {
+            newPath.replace(pos, ext.length(), suffix);
             break;
         }
     }

@@ -43,6 +43,6 @@ link_directories(${INFER_LIBPATH})
 link_directories(${UTILS_LIBPATH})
 
 #subdirectory
-# ADD_SUBDIRECTORY(test-precious)
+ADD_SUBDIRECTORY(test-precious)
 ADD_SUBDIRECTORY(test-infer)
 ADD_SUBDIRECTORY(test-batchinfer)
