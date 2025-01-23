@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-26 09:14:21
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2025-01-21 13:18:33
+ * @LastEditTime: 2025-01-23 14:41:55
  * @Description: 
  */
 #include <string>
@@ -35,6 +35,10 @@ bool createDirectory(const std::string& path) {
 }
 
 bool writeSegmentResults(const std::vector<SegBox>& segResult, const std::string& filePath) {
+    if (segResult.empty()) {
+        // 如果 segResult 为空或只有一个 classID 为 -1 的元素，则返回 false
+        return false;
+    }
     if(segResult.size() == 1 && segResult[0].classID == -1){
         return false;
     }
@@ -51,6 +55,10 @@ bool writeSegmentResults(const std::vector<SegBox>& segResult, const std::string
 }
 
 void writeMaskResults(const std::vector<cv::Mat>& masks, const std::string& maskFilePath) {
+    if (masks.empty()) {
+        std::cerr << "Error: No masks to write!" << std::endl;
+        return;
+    }
     std::ofstream outfile(maskFilePath, std::ios::binary);
     if (!outfile) {
         std::cerr << "Error opening mask file!" << std::endl;
@@ -108,8 +116,7 @@ int main(int argc, char* argv[])
     } 
     std::cout<<"Init Finshed!"<<std::endl;  
 
-    std::string addition= "/output/";
-    std::string imageSavePath = pimagedir + addition;
+    std::string imageSavePath = std::string(pimagedir) + "_output";
     //检查图像保存文件夹不存在进行创建
     if (!isDirectoryExists(imageSavePath)) {
         if (createDirectory(imageSavePath)) {
@@ -118,9 +125,9 @@ int main(int argc, char* argv[])
             std::cerr << "Error: Failed to create directory!" << std::endl;
             return 1;
         }
-      } else {
-            std::cout << "Directory already exists!" << std::endl;
-      }
+    } else {
+        std::cout << "Directory already exists!" << std::endl;
+    }
 
     std::vector<std::string> imagePaths = getImagePaths(pimagedir);
     cv::Mat frame;
