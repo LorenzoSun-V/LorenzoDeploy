@@ -294,6 +294,7 @@ bool YOLOV10ModelManager::doInference(std::vector<cv::Mat> img_batch, std::vecto
         return false;
     }
     cudaStreamSynchronize(stream);
+    //return postProcess(output_data.data(), batchDetBoxes);
     return postProcess2(output_data.data(), img_batch, batchDetBoxes);
 }
 

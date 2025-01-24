@@ -1,8 +1,8 @@
 /*
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-20 16:20:55
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2024-11-19 15:28:10
+ * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
+ * @LastEditTime: 2025-01-24 10:13:42
  * @Description: YOLOv10 单batch测试代码
  */
 #include <string>
@@ -63,7 +63,9 @@ int main(int argc, char* argv[])
         double t_detect_end = GetCurrentTimeStampMS();  
         fprintf(stdout, "detection time %.02lfms\n", t_detect_end - t_detect_start);
         total_time += t_detect_end - t_detect_start;
-        std::string imagename = "image"+int2string(i)+".jpg";
+        // 生成新的图像名称，原始名称 + 下横线 + 序号
+        std::string baseImageName = getBaseFileName(imagePaths[i]);
+        std::string imagename = "_" + baseImageName.substr(0, baseImageName.find_last_of('.')) + ".jpg";
         DrawRectDetectResultForImage(frames[i], detBoxs);   
         cv::imwrite(imagename, frames[i]);
     }

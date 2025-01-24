@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-20 16:20:55
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-09-23 09:10:19
+ * @LastEditTime: 2025-01-24 10:24:36
  * @Description: YOLOv10 单batch测试代码
  */
 #include <string>
@@ -55,22 +55,24 @@ int main(int argc, char* argv[])
 
     std::cout<<"Init Finshed!"<<std::endl;  
     int frame_num = static_cast<int>(frames.size());
-    // double total_time = 0.0;
+    double total_time = 0.0;
     for (int i=0; i < frame_num; i++){
         std::vector<DetBox> detBoxs;
-        // double t_detect_start = GetCurrentTimeStampMS();
+        double t_detect_start = GetCurrentTimeStampMS();
         InferenceGetDetectResult(pDNNInstance, frames[i], detBoxs);
-        // double t_detect_end = GetCurrentTimeStampMS();  
-        // fprintf(stdout, "detection time %.02lfms\n", t_detect_end - t_detect_start);
-        // total_time += t_detect_end - t_detect_start;
-        std::string imagename = "image"+int2string(i)+".jpg";
+        double t_detect_end = GetCurrentTimeStampMS();  
+        fprintf(stdout, "detection time %.02lfms\n", t_detect_end - t_detect_start);
+        total_time += t_detect_end - t_detect_start;
+        // 生成新的图像名称，原始名称 + 下横线 + 序号
+        std::string baseImageName = getBaseFileName(imagePaths[i]);
+        std::string imagename = "_" + baseImageName.substr(0, baseImageName.find_last_of('.')) + ".jpg";
         DrawRectDetectResultForImage(frames[i], detBoxs);   
         cv::imwrite(imagename, frames[i]);
     }
 
-    // std::cout << "Total detection time: " << total_time << "ms" << std::endl;
-    // std::cout << "Average fps: " << frame_num / total_time * 1000 << std::endl;
-    // std::cout << "Finish !"<<std::endl;
+    std::cout << "Total detection time: " << total_time << "ms" << std::endl;
+    std::cout << "Average fps: " << frame_num / total_time * 1000 << std::endl;
+    std::cout << "Finish !"<<std::endl;
     DestoryDeepmodeInstance(&pDNNInstance);
     return 0;
 }

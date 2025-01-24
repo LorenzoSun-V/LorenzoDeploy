@@ -35,6 +35,15 @@ bool ReadFrameFromPath(const char* pImagePath, cv::Mat& frame)
     return true;
 }
 
+// 获取文件名
+std::string getBaseFileName(const std::string& path) {
+    size_t pos = path.find_last_of("/\\");
+    if (pos != std::string::npos) {
+        return path.substr(pos + 1); // 获取文件名部分
+    }
+    return path; // 如果路径中没有路径分隔符，则直接返回
+}
+
 // 弧度转换为角度
 float radianToDegree(float radian) {
     return radian * 180.0f / static_cast<float>(M_PI);
@@ -377,7 +386,7 @@ std::vector<std::string> getImagePaths(const std::string& folder) {
     return imagePaths;
 } 
 
-// 将图片名称后缀替换为txt
+//将图片名称后缀替换对应的文件后缀
 std::string replaceImageExtensionWithTxt(const std::string& path) {
     std::vector<std::string> extensions = {".jpg", ".JPG", ".jpeg", ".JPEG", ".png", ".PNG", ".bmp", ".BMP"};
     std::string newPath = path;

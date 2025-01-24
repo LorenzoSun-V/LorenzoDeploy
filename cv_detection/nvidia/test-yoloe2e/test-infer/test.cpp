@@ -1,3 +1,10 @@
+/*
+ * @Author: BTZN0325 sunjiahui@boton-tech.com
+ * @Date: 2025-01-07 08:40:33
+ * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
+ * @LastEditTime: 2025-01-24 10:06:13
+ * @Description: 
+ */
 #include <string>
 #include <vector>
 #include <iostream>
@@ -11,7 +18,6 @@
 #else
     #include "yoloe2ev2infer.h"
 #endif
-
 
 std::string int2string(int x)
 {
@@ -62,7 +68,9 @@ int main(int argc, char* argv[])
         double t_detect_end = GetCurrentTimeStampMS();  
         fprintf(stdout, "detection time %.02lfms\n", t_detect_end - t_detect_start);
         total_time += t_detect_end - t_detect_start;
-        std::string imagename = "image"+int2string(i)+".jpg";
+        // 生成新的图像名称，原始名称 + 下横线 + 序号
+        std::string baseImageName = getBaseFileName(imagePaths[i]);
+        std::string imagename = "_" + baseImageName.substr(0, baseImageName.find_last_of('.')) + ".jpg";
         DrawRectDetectResultForImage(frames[i], detBoxs);   
         cv::imwrite(imagename, frames[i]);
     }

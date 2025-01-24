@@ -66,7 +66,9 @@ int main(int argc, char* argv[])
     }
 
     for (int i=0; i <frame_num && batchdetBoxs.size()>0; i++){
-        std::string imagename = "image"+int2string(i)+".jpg";
+        // 生成新的图像名称，原始名称 + 下横线 + 序号
+        std::string baseImageName = getBaseFileName(imagePaths[i]);
+        std::string imagename = "_" + baseImageName.substr(0, baseImageName.find_last_of('.')) + ".jpg";
         DrawRectDetectResultForImage(vframes[i], batchdetBoxs[i]);   
         cv::imwrite(imagename, vframes[i]);
     }

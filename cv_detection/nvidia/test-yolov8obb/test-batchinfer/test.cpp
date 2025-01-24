@@ -2,7 +2,7 @@
  * @FilePath: /jack/github/bt_alg_api/cv_detection/nvidia/test-yolov8obb/test-batchinfer/test.cpp
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-12-06 15:43:47
+ * @LastEditTime: 2025-01-24 10:23:33
  * @Description: YOLOv8OBB 多batch处理代码
  */
 #include <string>
@@ -78,7 +78,6 @@ int main(int argc, char* argv[])
               << std::endl;
         }
 
-   
         // 生成新的图像名称，原始名称 + 下横线 + 序号
         std::string imagename = "_" + baseImageName.substr(0, baseImageName.find_last_of('.')) + ".jpg";
         DrawRotatedRectForImage(frames_list[i], batchdetBoxs[i]);   

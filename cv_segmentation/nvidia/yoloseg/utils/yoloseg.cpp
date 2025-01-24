@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-26 08:51:12
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2025-01-21 08:47:31
+ * @LastEditTime: 2025-01-06 17:58:51
  * @Description: 
  */
 #include "yoloseg.h"
@@ -178,11 +178,9 @@ bool YOLOSegModel::doInference(std::vector<cv::Mat> img_batch)
         return false;
     }
     // 1) preprocess and copy input to GPU
-    std::cout << "[Inference] start preprocess..." << std::endl;
     cuda_batch_preprocess(img_batch, gpu_input_data, m_model.input_width, m_model.input_height, m_trt.stream);
     // 2) bind input and output buffers
     void* bindings[] = { gpu_input_data, gpu_seg_output_data, gpu_det_output_data};
-    std::cout << "[Inference] start inference..." << std::endl;
     if (!m_trt.context->enqueueV2(bindings, m_trt.stream, nullptr)) {
         std::cerr << "Failed to enqueue inference." << std::endl;
         return false;
@@ -225,17 +223,15 @@ bool YOLOSegModel::inference(cv::Mat frame, std::vector<SegBox>& result, std::ve
     std::vector<std::vector<cv::Mat>> batch_size_masks;
     std::vector<std::vector<SegBox>> batch_det_result;
     std::vector<std::vector<cv::Mat>> batch_seg_result;
-    std::cout << "[Inference] start bbox postprocess..." << std::endl;
+    
     if (!batch_nms(batch_size_bboxes, cpu_det_output_data.data(), m_model, m_buseyolov8)){
         std::cerr << "Failed to do NMS." << std::endl;
         return false;
     }
-    std::cout << "[Inference] start mask postprocess..." << std::endl;
     if (!batch_process_mask(cpu_seg_output_data.data(), m_kSegOutputSize / m_model.batch_size, batch_size_bboxes, batch_size_masks, m_model)){
         std::cerr << "Failed to do mask." << std::endl;
         return false;
     }
-    std::cout << "[Inference] start postprocess_batch..." << std::endl;
     bool bres = postprocess_batch(batch_size_bboxes, batch_size_masks, batch_images, m_model.input_width, m_model.input_height, batch_det_result, batch_seg_result);
     if( !bres ) {
         return false;

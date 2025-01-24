@@ -1,8 +1,8 @@
 /*
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-21 13:09:55
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2024-09-03 16:56:35
+ * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
+ * @LastEditTime: 2025-01-24 10:12:53
  * @Description: 
  */
 #include <string>
@@ -58,15 +58,18 @@ int main(int argc, char* argv[])
     double total_time = 0.0;
     int index=1;
     std::vector<DetBox> detBoxs;
-    for( auto& frame: batchframes)
+    for(int i = 0; i < frame_num; i++)
     {
+        frame = batchframes[i];
         detBoxs.clear();
         double t_detect_start = GetCurrentTimeStampMS();
         InferenceGetDetectResult(pDNNInstance, frame, detBoxs);
         double t_detect_end = GetCurrentTimeStampMS();  
         fprintf(stdout, "detection time %.02lfms\n", t_detect_end - t_detect_start);
         total_time += t_detect_end - t_detect_start;
-        std::string imagename = "image_"+int2string(index)+".jpg";
+        // 生成新的图像名称，原始名称 + 下横线 + 序号
+        std::string baseImageName = getBaseFileName(imagePaths[i]);
+        std::string imagename = "_" + baseImageName.substr(0, baseImageName.find_last_of('.')) + ".jpg";
         DrawRectDetectResultForImage(frame, detBoxs);   
         cv::imwrite(imagename, frame);
         index++;

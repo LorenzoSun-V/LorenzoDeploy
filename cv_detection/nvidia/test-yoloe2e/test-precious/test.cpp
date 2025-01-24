@@ -1,8 +1,8 @@
 /*
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-21 14:19:07
- * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2025-01-17 15:53:24
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2024-11-05 10:27:04
  * @Description: YOLOv10 精度处理代码
  */
 #include <iostream>
@@ -79,12 +79,12 @@ int main(int argc, char* argv[])
     std::string imageSavePath = folderPath + addition;
     //检查图像保存文件夹不存在进行创建
     if (!isDirectoryExists(imageSavePath)) {
-        if (createDirectory(imageSavePath)) {
-            std::cout << "Directory created successfully!" << std::endl;
-        } else {
-            std::cerr << "Error: Failed to create directory!" << std::endl;
-            return 1;
-        }
+          if (createDirectory(imageSavePath)) {
+              std::cout << "Directory created successfully!" << std::endl;
+          } else {
+              std::cerr << "Error: Failed to create directory!" << std::endl;
+              return 1;
+          }
       } else {
           std::cout << "Directory already exists!" << std::endl;
       }

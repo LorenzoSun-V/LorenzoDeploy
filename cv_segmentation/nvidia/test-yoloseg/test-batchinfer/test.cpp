@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-30 15:35:12
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2025-01-06 17:41:45
+ * @LastEditTime: 2025-01-24 10:16:01
  * @Description: YOLO instance segmentation model batch inference
  */
 
@@ -71,7 +71,6 @@ int main(int argc, char* argv[])
     for (int i = 0; i < frame_num && batchsegBoxs.size() > 0; i++) {
         // 获取原始图像名称
         std::string baseImageName = getBaseFileName(imagePaths[i]);
-   
         // 生成新的图像名称，原始名称 + 下横线 + 序号
         std::string imagename = "_" + baseImageName.substr(0, baseImageName.find_last_of('.')) + ".jpg";
         DrawInstanceSegmentResultForImage(frames_list[i], batchsegBoxs[i], batchmasks[i]);   

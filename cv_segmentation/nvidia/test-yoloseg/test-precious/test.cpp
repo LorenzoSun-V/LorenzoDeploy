@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-26 09:14:21
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2025-01-23 14:41:55
+ * @LastEditTime: 2025-01-24 10:20:24
  * @Description: 
  */
 #include <string>
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
     } 
     std::cout<<"Init Finshed!"<<std::endl;  
 
-    std::string imageSavePath = std::string(pimagedir) + "_output";
+    std::string imageSavePath = std::string(pimagedir) + "_output/";
     //检查图像保存文件夹不存在进行创建
     if (!isDirectoryExists(imageSavePath)) {
         if (createDirectory(imageSavePath)) {

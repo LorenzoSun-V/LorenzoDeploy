@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-12-26 09:14:21
  * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2025-01-17 15:54:37
+ * @LastEditTime: 2025-01-24 10:25:24
  * @Description: 
  */
 #include <string>
@@ -14,14 +14,6 @@
 #include "utils.h"
 #include "common.h"
 #include "yoloseginfer.h"
-
-std::string getBaseFileName(const std::string& path) {
-    size_t pos = path.find_last_of("/\\");
-    if (pos != std::string::npos) {
-        return path.substr(pos + 1); // 获取文件名部分
-    }
-    return path; // 如果路径中没有路径分隔符，则直接返回
-}
 
 int main(int argc, char* argv[])
 {
@@ -61,20 +53,22 @@ int main(int argc, char* argv[])
     int index=1;
     std::vector<SegBox> segBoxs;
     std::vector<cv::Mat> masks;
-    for( auto& frame: batchframes)
+    for(int i=0; i<frame_num; i++)
     {
+        frame = batchframes[i];
         segBoxs.clear();
-        masks.clear();
         double t_detect_start = GetCurrentTimeStampMS();
         InferenceGetInstanceSegmentResult(pDeepInstance, frame, segBoxs, masks);
         double t_detect_end = GetCurrentTimeStampMS();  
         fprintf(stdout, "detection time %.02lfms\n", t_detect_end - t_detect_start);
         total_time += t_detect_end - t_detect_start;
-        std::string imagename = "image_"+std::to_string(index)+".jpg";
+        // 生成新的图像名称，原始名称 + 下横线 + 序号
+        std::string baseImageName = getBaseFileName(imagePaths[i]);
+        std::string imagename = "_" + baseImageName.substr(0, baseImageName.find_last_of('.')) + ".jpg";
         DrawInstanceSegmentResultForImage(frame, segBoxs, masks);  
         cv::imwrite(imagename, frame);
         index++;
-      }
+    }
 
     DestoryDeepmodeInstance(&pDeepInstance);	  
     std::cout << "Total detection time: " << total_time << "ms" << std::endl;

@@ -2,7 +2,7 @@
  * @FilePath: /bt_alg_api/test-yolov5/test-batchinfer/test.cpp
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2024-09-03 16:49:52
+ * @LastEditTime: 2025-01-24 10:12:18
  */
 #include <string>
 #include <vector>
@@ -67,7 +67,9 @@ int main(int argc, char* argv[])
     int frame_num = static_cast<int>(batchframes.size());  
     for(int i=0; i < frame_num; i++)
     {
-        std::string imagename = "image"+int2string(i)+".jpg";
+        // 生成新的图像名称，原始名称 + 下横线 + 序号
+        std::string baseImageName = getBaseFileName(imagePaths[i]);
+        std::string imagename = "_" + baseImageName.substr(0, baseImageName.find_last_of('.')) + ".jpg";
         DrawRectDetectResultForImage(batchframes[i], batchDetBoxs[i]);   
         cv::imwrite(imagename, batchframes[i] );
     }

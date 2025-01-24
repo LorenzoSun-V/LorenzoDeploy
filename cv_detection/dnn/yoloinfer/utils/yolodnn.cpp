@@ -1,24 +1,32 @@
 #include "yolodnn.h"
 
+// 构造函数，初始化模型参数
 YOLODNNModelManager::YOLODNNModelManager()
     : m_model_param{3, 640, 640, 1, 0.25f, 0.45f, 0.0f, 0.0f, false} {
     }
 
+// 析构函数
 YOLODNNModelManager::~YOLODNNModelManager() {
 }
 
+// 加载YOLO模型
+// @param model_name: 模型文件路径
+// @return: 成功返回true，失败返回false
 bool YOLODNNModelManager::loadModel(const std::string model_name){
+    // 检查模型文件是否存在
     struct stat buffer;
     if (!stat(model_name.c_str(), &buffer) == 0) {
         std::cerr << "Error: File " << model_name << " does not exist!" << std::endl;
         return false;
     }
+    // 从ONNX文件加载模型
     net = cv::dnn::readNetFromONNX(model_name);
+    // 设置使用OpenCV后端和CPU目标
     net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
     net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
     std::cout << "Running on CPU with OpenCV backend" << std::endl;
     
-    // 获取输入维度
+    // 获取网络输入维度并更新模型参数
     std::vector<cv::dnn::MatShape> inLayerShapes;
     std::vector<cv::dnn::MatShape> outLayerShapes;
     cv::dnn::MatShape emptyShape;
@@ -31,6 +39,9 @@ bool YOLODNNModelManager::loadModel(const std::string model_name){
     return true;
 }
 
+// 图像预处理
+// @param img: 输入图像
+// @return: 预处理后的图像
 cv::Mat YOLODNNModelManager::preprocess(cv::Mat img) {
     int col = img.cols;
     int row = img.rows;
@@ -42,19 +53,26 @@ cv::Mat YOLODNNModelManager::preprocess(cv::Mat img) {
     return result;
 }
 
+// 执行推理
+// @param input_data: 预处理后的输入数据
 void YOLODNNModelManager::doInference(cv::Mat input_data){
+    // 将图像转换为blob格式
     cv::Mat blob;
     cv::dnn::blobFromImage(input_data, blob, 1.0/255.0, {m_model_param.input_width, m_model_param.input_height}, cv::Scalar(), true, false);
     net.setInput(blob);
 }
 
+// 后处理，解析网络输出
+// @param detBoxs: 输出检测框
 void YOLODNNModelManager::postprocess(std::vector<DetBox>& detBoxs){
+    // 获取网络输出
     std::vector<cv::Mat> outputs;
     net.forward(outputs, net.getUnconnectedOutLayersNames());
     int rows = outputs[0].size[1];
     int dimensions = outputs[0].size[2];
 
-    if (dimensions > rows){ // Check if the shape[2] is more than shape[1] (yolov8)
+    // 检查是否为YOLOv8输出格式
+    if (dimensions > rows){ 
         m_model_param.yolov8 = true;
         rows = outputs[0].size[2];
         dimensions = outputs[0].size[1];
@@ -63,11 +81,13 @@ void YOLODNNModelManager::postprocess(std::vector<DetBox>& detBoxs){
         cv::transpose(outputs[0], outputs[0]);
     }
 
+    // 解析网络输出数据
     float *data = reinterpret_cast<float*>(outputs[0].data);
     std::vector<int> class_ids;
     std::vector<float> confidences;
     std::vector<cv::Rect> boxes;
 
+    // 遍历所有检测结果
     for (int i = 0; i < rows; ++i){
         if (m_model_param.yolov8){
             float *classes_scores = data + 4;
@@ -128,6 +148,7 @@ void YOLODNNModelManager::postprocess(std::vector<DetBox>& detBoxs){
         data += dimensions;
     }
 
+    // 执行非极大值抑制(NMS)
     std::vector<int> nms_result;
     cv::dnn::NMSBoxes(boxes, confidences, m_model_param.conf_thresh, m_model_param.iou_thresh, nms_result);
     for (unsigned long i = 0; i < nms_result.size(); ++i) {
@@ -143,17 +164,22 @@ void YOLODNNModelManager::postprocess(std::vector<DetBox>& detBoxs){
     }
 }
 
+// 执行完整推理流程
+// @param frame: 输入图像
+// @param detBoxs: 输出检测框
+// @return: 成功返回true，失败返回false
 bool YOLODNNModelManager::inference(cv::Mat& frame, std::vector<DetBox>& detBoxs){
+    // 检查输入图像是否为空
     if (frame.empty()) {
         std::cerr << "Input frame is empty." << std::endl;
         return false;
     }
-    // 前处理
+    // 图像预处理
     cv::Mat input_data = frame;
     input_data = preprocess(frame);
-    // 推理
+    // 执行推理
     doInference(input_data);
-    // 后处理
+    // 结果后处理
     postprocess(detBoxs);
     return true;
 }

@@ -2,7 +2,7 @@
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-11-07 10:43:03
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2024-11-07 14:50:31
+ * @LastEditTime: 2024-12-03 15:17:01
  * @Description: 
 -->
 ## 英伟达目标检测
@@ -26,7 +26,5 @@
 ### 6. yoloe2e和test-yoloe2e
 设计本代码的目标是统一yolo系列目标检测部署代码，所有yolo模型推理部分使用相同部署代码，减少开发工作量，本仓库分为两个版本，v1版本需要预装python环境，python环境中cuda,tensorrt版本需要和c++中对齐，不然运行会出错，相对友好性较差，v2版本对此做了升级，训练导出onnx后，使用onnx_graphsurgeon对onnx模型进行切片和添加nms操作，分为anchor base版本和anchor free版本，支持x86和arch64平台的英伟达设备运行。
 
-## 瑞星微目标检测
-
-### 1. yolov5与test-yolov5
-本代码参考[RK3399Pro_npu](https://github.com/airockchip/RK3399Pro_npu/tree/main/rknn-api/examples/c_demos/rknn_yolov5_demo)项目编写，在RK3399pro嵌入式设备上运行，去除rag入口参数改为opencv读图进行模型推理。
+### 7. yolov8obb和test-yolov8obb
+设计本代码的目标是更加符合纵撕项目场景，支持单batch和多batch模型推理，支持精度验证。

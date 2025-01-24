@@ -68,7 +68,6 @@ int main(int argc, char* argv[])
         
         // 获取原始图像名称
         std::string baseImageName = getBaseFileName(imagePaths[i]);
-
         for (const auto& box : detBoxs) {
         std::cout << baseImageName << " : x=" << box.x << ", y=" << box.y 
               << ", w=" << box.w << ", h=" << box.h 
@@ -79,10 +78,8 @@ int main(int argc, char* argv[])
 
         total_time += t_detect_end - t_detect_start;
 
-
         // 生成新的图像名称，原始名称 + 下横线 + 序号
         std::string imagename = "_" + baseImageName.substr(0, baseImageName.find_last_of('.')) + ".jpg";
-        std::cout << "Save image: " << imagename << std::endl;
         DrawRotatedRectForImage(frames_list[i], detBoxs); 
         cv::imwrite(imagename, frames_list[i]);
     }

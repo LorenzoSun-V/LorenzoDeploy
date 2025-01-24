@@ -1,12 +1,14 @@
 /*
  * @Author: BTZN0325 sunjiahui@boton-tech.com
  * @Date: 2024-06-21 14:19:07
- * @LastEditors: BTZN0325 sunjiahui@boton-tech.com
- * @LastEditTime: 2024-12-23 16:03:06
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2025-01-02 08:43:14
  * @Description: YOLOv8OBB模型前处理、推理、后处理代码
  */
 #include "yolov8obb.h"
 
+// 构造函数
+// 初始化模型参数和CUDA资源
 YOLOV8OBBModel::YOLOV8OBBModel()
     : m_trt{ Logger(),  nullptr, nullptr, nullptr, nullptr},
     m_kOutputSize(0),  
@@ -15,6 +17,8 @@ YOLOV8OBBModel::YOLOV8OBBModel()
     inputSrcDevice(nullptr), outputSrcDevice(nullptr) {
 }
 
+// 析构函数
+// 释放所有分配的CUDA资源
 YOLOV8OBBModel::~YOLOV8OBBModel() {
     if (inputSrcDevice) {
         cudaFreeHost(inputSrcDevice);
@@ -43,7 +47,9 @@ YOLOV8OBBModel::~YOLOV8OBBModel() {
     cuda_preprocess_destroy();
 }
 
-// Load the model from the serialized engine file
+// 加载TensorRT引擎模型
+// @param engine_name: 引擎文件路径
+// @return: 成功返回true，失败返回false
 bool YOLOV8OBBModel::loadModel(const std::string engine_name) {
     struct stat buffer;
     if (!stat(engine_name.c_str(), &buffer) == 0) {
@@ -104,13 +110,14 @@ bool YOLOV8OBBModel::loadModel(const std::string engine_name) {
         return false;
     }
 
-    inputData.resize(m_kInputSize);
     output_data.resize(m_kOutputSize);
 
     return true;
 }
 
-// Deserialize the engine from file
+// 反序列化TensorRT引擎
+// @param engine_name: 引擎文件路径
+// @return: 成功返回true，失败返回false
 bool YOLOV8OBBModel::deserializeEngine(const std::string engine_name) {
     std::ifstream file(engine_name, std::ios::binary);
     if (!file.good()) {
@@ -153,18 +160,15 @@ FAILED:
         return false;
 }
 
+// 执行推理
+// @param batch_images: 输入图像批次
+// @return: 成功返回true，失败返回false
 bool YOLOV8OBBModel::doInference(std::vector<cv::Mat> batch_images) 
 {
     cuda_batch_preprocess(batch_images, inputSrcDevice, m_model.input_width, m_model.input_height, m_trt.stream);
     void* bindings[] = { inputSrcDevice, outputSrcDevice };
     if (!m_trt.context->enqueueV2(bindings, m_trt.stream, nullptr)) {
         std::cerr << "Failed to enqueue inference." << std::endl;
-        return false;
-    }
-
-    if (cudaMemcpyAsync(inputSrcDevice, inputData.data(), m_kInputSize * sizeof(float), 
-            cudaMemcpyHostToDevice, m_trt.stream) != cudaSuccess) {
-        std::cerr << "Failed to copy input data to device." << std::endl;
         return false;
     }
     
@@ -177,6 +181,10 @@ bool YOLOV8OBBModel::doInference(std::vector<cv::Mat> batch_images)
     return true;
 }
 
+// 单张图像推理
+// @param frame: 输入图像
+// @param result: 输出检测结果
+// @return: 成功返回true，失败返回false
 bool YOLOV8OBBModel::inference(cv::Mat frame, std::vector<DetBox>& result) 
 {
     if(frame.empty() ){
@@ -190,9 +198,6 @@ bool YOLOV8OBBModel::inference(cv::Mat frame, std::vector<DetBox>& result)
         return false;
     }
 
-    // std::vector<BBox> bboxes;
-    // nms_obb(bboxes, output_data.data(), m_model);
-    // postprocess(bboxes, frame, m_model.input_width, m_model.input_height, detBoxs);
     std::vector<std::vector<BBox>> batch_bboxes;
     std::vector<std::vector<DetBox>> batch_result;
     nms_obb_batch(batch_bboxes, output_data.data(), m_model);
@@ -204,6 +209,10 @@ bool YOLOV8OBBModel::inference(cv::Mat frame, std::vector<DetBox>& result)
     return true;
 }
 
+// 批量图像推理
+// @param batch_images: 输入图像列表
+// @param batch_result: 输出批量检测结果
+// @return: 成功返回true，失败返回false
 bool YOLOV8OBBModel::batch_inference(std::vector<cv::Mat> batch_images, std::vector<std::vector<DetBox>>& batch_result)
 {
     if(batch_images.empty() ) {
@@ -238,4 +247,3 @@ bool YOLOV8OBBModel::batch_inference(std::vector<cv::Mat> batch_images, std::vec
 
     return true;
 }
-   

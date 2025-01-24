@@ -2,7 +2,7 @@
  * @Description: 集成视觉相关小功能模块
  * @Copyright: 无锡宝通智能科技股份有限公司
  * @Author: jiajunjie@boton-tech.com
- * @LastEditTime: 2025-01-23 13:47:17
+ * @LastEditTime: 2025-01-24 10:17:11
  */
 #pragma once
 
@@ -36,6 +36,15 @@ extern "C"
 	    cv::Mat &frame,
         std::vector<DetBox> detBoxs
     );
+
+    /*
+     * @brief 获取文件名
+     * 
+     * @param  path           输入图片地址
+     * 
+     * @return  std::string     返回文件名
+     */
+    std::string getBaseFileName(const std::string& path);
 
     /*
      * @brief 标记识别框，绘制实例分割结果
@@ -170,13 +179,13 @@ extern "C"
     /*
      * @brief  替换图像后缀为suffix
      * 
-     * @param   path         输入图像路径
+	 * @param   path         输入图像路径
      * @param   suffix       输入文件后缀
      * 
      * @return  string       返回替换后缀的路径
      */ 
     std::string replaceImageExtensionWithSuffix(const std::string& path, const std::string& suffix=".txt");
-
+    
     /*
      * @brief  在图像名称后加上后缀
      * 

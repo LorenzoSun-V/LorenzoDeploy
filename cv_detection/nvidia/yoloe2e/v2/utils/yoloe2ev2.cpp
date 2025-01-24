@@ -1,6 +1,8 @@
 #include "yoloe2ev2.h"
 
 
+// YOLOE2Ev2模型管理器构造函数
+// 初始化模型参数和指针
 YOLOE2Ev2ModelManager::YOLOE2Ev2ModelManager()
     : m_kBatchSize(1), m_channel(3), m_kInputH(640), m_kInputW(640),
     m_maxObject(20),runtime(nullptr), engine(nullptr), context(nullptr), stream(0),
@@ -8,6 +10,8 @@ YOLOE2Ev2ModelManager::YOLOE2Ev2ModelManager()
 
     }
 
+// YOLOE2Ev2模型管理器析构函数
+// 释放所有分配的资源
 YOLOE2Ev2ModelManager::~YOLOE2Ev2ModelManager() {
     if (context) {
         context->destroy();
@@ -50,6 +54,9 @@ YOLOE2Ev2ModelManager::~YOLOE2Ev2ModelManager() {
     }
 }
 
+// 加载TensorRT引擎模型
+// @param engine_name: 引擎文件路径
+// @return: 成功返回true，失败返回false
 bool YOLOE2Ev2ModelManager::loadModel(const std::string engine_name){
     struct stat buffer;
     if (!stat(engine_name.c_str(), &buffer) == 0) {
@@ -116,7 +123,9 @@ bool YOLOE2Ev2ModelManager::loadModel(const std::string engine_name){
     return true;
 }
 
-// Deserialize the engine from file
+// 反序列化TensorRT引擎
+// @param engine_name: 引擎文件路径
+// @return: 成功返回true，失败返回false
 bool YOLOE2Ev2ModelManager::deserializeEngine(const std::string engine_name) {
     std::ifstream file(engine_name, std::ios::binary);
     if (!file.is_open()) {
@@ -150,6 +159,9 @@ bool YOLOE2Ev2ModelManager::deserializeEngine(const std::string engine_name) {
     return true; 
 }
 
+// 图像预处理
+// @param img: 输入图像
+// @param data: 输出预处理后的数据
 void YOLOE2Ev2ModelManager::preprocess(cv::Mat& img, std::vector<float>& data){
     int w, h, x, y;
 	float r_w = m_kInputW / (img.cols*1.0f);
@@ -185,6 +197,11 @@ void YOLOE2Ev2ModelManager::preprocess(cv::Mat& img, std::vector<float>& data){
 	}
 }
 
+// 将预测框回归到原始图像尺寸
+// @param pred_box: 预测框
+// @param detBoxs: 输出回归后的检测框
+// @param width: 原始图像宽度
+// @param height: 原始图像高度
 void YOLOE2Ev2ModelManager::rescale_box(std::vector<DetBox>& pred_box, std::vector<DetBox>& detBoxs, int width, int height){
     float l_length = std::max(m_kInputH, m_kInputW);
     float gain = l_length / std::max(width, height);
@@ -205,6 +222,8 @@ void YOLOE2Ev2ModelManager::rescale_box(std::vector<DetBox>& pred_box, std::vect
     }
 }
 
+// 执行推理
+// @return: 成功返回true，失败返回false
 bool YOLOE2Ev2ModelManager::doInference()
 {
     if (!context->enqueueV2(buffers, stream, nullptr)) {
@@ -220,6 +239,10 @@ bool YOLOE2Ev2ModelManager::doInference()
     return true;
 }
 
+// 单张图像推理
+// @param frame: 输入图像
+// @param detBoxs: 输出检测结果
+// @return: 成功返回true，失败返回false
 bool YOLOE2Ev2ModelManager::inference(cv::Mat frame, std::vector<DetBox>& detBoxs)
 {
     preprocess(frame, input);
@@ -242,6 +265,10 @@ bool YOLOE2Ev2ModelManager::inference(cv::Mat frame, std::vector<DetBox>& detBox
     return true;
 }
 
+// 批量图像推理
+// @param frames: 输入图像列表
+// @param batchBoxes: 输出批量检测结果
+// @return: 成功返回true，失败返回false
 bool YOLOE2Ev2ModelManager::batchinference(std::vector<cv::Mat> frames, std::vector<std::vector<DetBox>>& batchBoxes) {
     if (frames.empty()) {
         std::cerr << "Input batch is empty." << std::endl;
