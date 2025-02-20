@@ -6,9 +6,10 @@
 -->
 ## 设置环境变量
 ```
-export LD_LIBRARY_PATH=/home/sysadmin/jack/TensorRT-8.5.2.2/lib
+export LD_LIBRARY_PATH=${TensorRT_Path}/lib
 ```
+
 ## 模型转换
 ```
-./onnx2engine /home/sysadmin/gmz/yolo/ultralytics_obb/runs/DOTA/model8_b32s-obb_20241205_cls2_hw_obb_v0.1/weights/model8_b32s-obb_20241205_cls2_hw_obb_v0.1.onnx
+./onnx2engine ${ONNX_Path}
 ```

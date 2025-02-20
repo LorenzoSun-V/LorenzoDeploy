@@ -64,7 +64,7 @@ pip install ultralytics
 
 2. Prepare tensorrt engine
 
-    Use binary `trtexec` or `onnx2engine` in `bt_alg_api` to get tensorrt engine.
+    Use binary `trtexec` or `onnx2engine` in [onnx2engine](../../../../../onnx2engine/readme.md) to get tensorrt engine.
 
     ```
     ./trtexec --onnx=${onnx_nms_path} --saveEngine=${output_engine_path} --workspace=9000 --verbose   
@@ -96,7 +96,7 @@ pip install ultralytics
 
     ```
     cd test-yoloe2ev2/build/test-infer
-    ./test-infer ${image_folder} ${engine_path}
+    ./test-infer ${engine_path} ${image_folder}
     ```
 
     * image_folder: image folder for inference
@@ -106,6 +106,6 @@ pip install ultralytics
 
     ```
     cd test-yoloe2ev2/build/test-precious
-    ./test-precious ${image_folder} ${engine_path}
+    ./test-precious ${engine_path} ${image_folder}
     
     ```
