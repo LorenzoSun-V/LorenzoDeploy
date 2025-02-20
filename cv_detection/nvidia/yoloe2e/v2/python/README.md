@@ -1,11 +1,11 @@
 # YOLO Series End-to-End TensorRT C++ 
 
 ## Support
-[YOLOv11](https://github.com/ultralytics/ultralytics/)、[YOLOv9](https://github.com/WongKinYiu/yolov9)、[YOLOv8](https://v8docs.ultralytics.com/)、[YOLOv7](https://github.com/WongKinYiu/yolov7)、[YOLOv6](https://github.com/meituan/YOLOv6)、[YOLOX](https://github.com/Megvii-BaseDetection/YOLOX)、 [YOLOV5](https://github.com/ultralytics/yolov5)、[YOLOV3](https://github.com/ultralytics/yolov3)
+[YOLOv12](https://github.com/sunsmarterjie/yolov12)、[YOLOv11](https://github.com/ultralytics/ultralytics/)、[YOLOv9](https://github.com/WongKinYiu/yolov9)、[YOLOv8](https://v8docs.ultralytics.com/)、[YOLOv7](https://github.com/WongKinYiu/yolov7)、[YOLOv6](https://github.com/meituan/YOLOv6)、[YOLOX](https://github.com/Megvii-BaseDetection/YOLOX)、 [YOLOV5](https://github.com/ultralytics/yolov5)、[YOLOV3](https://github.com/ultralytics/yolov3)
+- [x] YOLOv12
 - [x] YOLOv11
 - [x] YOLOv9
 - [x] YOLOv8
-- [x] YOLOv6
 - [x] YOLOX
 - [x] YOLOv7
 - [x] YOLOv6
@@ -42,7 +42,7 @@ pip install ultralytics
     * outputmodel: output onnx_postprocess model
     * numcls: number of classes 
 
-* YOLOX/v8/v9/v11
+* YOLOX/v8/v9/v11/v12
 
     Use `yolo` to get onnx model.
     ```
